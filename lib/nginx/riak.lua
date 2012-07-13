@@ -27,7 +27,7 @@ function _M.new(servers, options)
         really_close = options.really_close
     }
     for _,server in ipairs(servers) do
-        insert(r.servers, { host = server.host or "127.0.0.1", server.port or 8087
+        insert(r.servers, { host = server.host or "127.0.0.1", server.port or 8087 })
     end
     setmetatable(r, client_mt)
     return r
