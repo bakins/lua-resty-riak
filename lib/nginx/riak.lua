@@ -24,6 +24,19 @@ local insert = table.insert
 local tcp = ngx.socket.tcp
 local mod = math.mod
 
+local ffi = require "ffi"
+local bit = require "bit"
+
+ffi.cdef[[
+        uint32_t htonl(uint32_t hostlong);
+        uint16_t htons(uint16_t hostshort);
+        uint32_t ntohl(uint32_t netlong);
+        uint16_t ntohs(uint16_t netshort);  
+
+        typedef struct { uint32_t length; uint8_t code; } riak_message_header_t;
+]]
+
+
 local MESSAGE_CODES = {
     ErrorResp = "0",
     ["0"] = "ErrorResp",
@@ -195,7 +208,21 @@ local empty_response_okay = {
 
 function client_mt.handle_response(client)
     local sock = client.sock
+    local bytes, err = sock:receive(5)
+    if not bytes then
+        return nil, err
+    end
+    bytes = tonumber(bytes)
+    if not bytes then
+        client:close(true)
+        return nil, "unable to convert length to a number"
+    end
+    
+    local msgcode = bit.band(bytes, 0x1f)
+    bytes = C.ntohl(bit.rshift(bytes, 4))
+    
     -- length is an integer at beginning
+    --[[
     local bytes, err = sock:receive(4)
     if not bytes then
         return nil, err
@@ -206,6 +233,7 @@ function client_mt.handle_response(client)
         return nil, "unable to convert length to a number"
     end
     -- we should receive this and unpack it...
+    
     local msgcode, err = sock:receive(1)
     local msgtype = MESSAGE_CODES.msgcode
     if not msgtype then
@@ -217,7 +245,7 @@ function client_mt.handle_response(client)
         client:close(true)
         return nil, "unhandled message type: " .. msgtype
     end
-
+    --]]
     local bytes = bytes - 1
     if bytes <= 0 then
         if empty_response_okay.msgtype then
@@ -244,7 +272,9 @@ local function send_request(client, msgcode, encoder, request)
     local msg = encoder(request)
     local bin = msg:Serialize()
     -- is #bin correct here? serialize should return a len, but it doesn't...
-    local bytes, err = sock:send({ #bin + 1, msgcode, bin })
+    --local bytes, err = sock:send({ #bin + 1, msgcode, bin })
+    local info = bit.bor(bit.lshift(C.htonl(#bin + 1), 4), msgcode)
+    local bytes, err = sock:send({ info, bin })
     if not bytes then
         return nil, err
     end
