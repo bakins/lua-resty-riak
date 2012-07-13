@@ -1,6 +1,6 @@
 local _M = {}
 
--- I'm not real sure how we get errors from riak via pb??
+-- this is based closely on the riak ruby client
 
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
@@ -185,6 +185,14 @@ function response_funcs.PutResp(msg)
     return true
 end
 
+local empty_response_okay = {
+    PingResp = 1,
+    SetClientIdResp = 1
+    PutResp = 1,
+    DelResp = 1,
+    SetBucketResp = 1
+}
+
 function client_mt.handle_response(client)
     local sock = client.sock
     -- length is an integer at beginning
@@ -202,7 +210,7 @@ function client_mt.handle_response(client)
     local msgtype = MESSAGE_CODES.msgcode
     if not msgtype then
         client:close(true)
-        return nil, "unknow message code: " .. msgcode
+        return nil, "unknown message code: " .. msgcode
     end
     local func = response_funcs[msgtype]
     if not func then
@@ -210,7 +218,17 @@ function client_mt.handle_response(client)
         return nil, "unhandled message type: " .. msgtype
     end
 
-    local msg, err = sock:receive(bytes-1)
+    local bytes = bytes - 1
+    if bytes <= 0 then
+        if empty_response_okay.msgtype then
+            return true, nil
+        else
+            client:close(true)
+            return nil, "empty response"
+        end
+    end
+    -- hack: some messages can return no body on success?
+    local msg, err = sock:receive(bytes)
     if not msg then
         client:close(true)
         return nil, err
