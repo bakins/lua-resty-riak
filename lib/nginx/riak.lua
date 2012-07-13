@@ -7,12 +7,15 @@ local pb = require "pb"
 
 -- riak_kv.proto should be in the include path
 local riak_kv = require "riak_kv"
+locla riak = require "riak"
 
 local RpbGetReq = riak_kv.RpbGetReq
 local RpbGetResp = riak_ks.RpbGetResp
 local RpbPutReq = riak_kv.RpbPutReq
 local RpbPutResp = riak_kb.RpbPutResp
+local RpbErrorResp = riak.RpbErrorResp
 
+local mt = {}
 local client_mt = {}
 local bucket_mt = {}
 local object_mt = {}
@@ -20,6 +23,67 @@ local object_mt = {}
 local insert = table.insert
 local tcp = ngx.socket.tcp
 local mod = math.mod
+
+local MESSAGE_CODES = {
+    ErrorResp = "0",
+    ["0"] = "ErrorResp",
+    PingReq = "1",
+    ["1"] = "PingReq",
+    PingResp = "2",
+    ["2"] = "PingResp",
+    GetClientIdReq = "3",
+    ["3"] = "GetClientIdReq",
+    GetClientIdResp = "4",
+    ["4"] = "GetClientIdResp",
+    SetClientIdReq = "5",
+    ["5"] = "SetClientIdReq",
+    SetClientIdResp = "6",
+    ["6"] = "SetClientIdResp",
+    GetServerInfoReq = "7",
+    ["7"] = "GetServerInfoReq",
+    GetServerInfoResp = "8",
+    ["8"] = "GetServerInfoResp",
+    GetReq = "9",
+    ["9"] = "GetReq",
+    GetResp = "10",
+    ["10"] = "GetResp",
+    PutReq = "11",
+    ["11"] = "PutReq",
+    PutResp = "12",
+    ["12"] = "PutResp",
+    DelReq = "13",
+    ["13"] = "DelReq",
+    DelResp = "14",
+    ["14"] = "DelResp",
+    ListBucketsReq = "15",
+    ["15"] = "ListBucketsReq",
+    ListBucketsResp = "16",
+    ["16"] = "ListBucketsResp",
+    ListKeysReq = "17",
+    ["17"] = "ListKeysReq",
+    ListKeysResp = "18",
+    ["18"] = "ListKeysResp",
+    GetBucketReq = "19",
+    ["19"] = "GetBucketReq",
+    GetBucketResp = "20",
+    ["20"] = "GetBucketResp",
+    SetBucketReq = "21",
+    ["21"] = "SetBucketReq",
+    SetBucketResp = "22",
+    ["22"] = "SetBucketResp",
+    MapRedReq = "23",
+    ["23"] = "MapRedReq",
+    MapRedResp = "24",
+    ["24"] = "MapRedResp",
+    IndexReq = "25",
+    ["25"] = "IndexReq",
+    IndexResp = "26",
+    ["26"] = "IndexResp",
+    SearchQueryReq = "27",
+    ["27"] = "SearchQueryReq",
+    SearchQueryResp = "28",
+    ["28"] = "SearchQueryResp"
+}
 
 -- servers should be in the form { {:host => host/ip, :port => :port }
 function _M.new(servers, options)
@@ -34,7 +98,7 @@ function _M.new(servers, options)
     for _,server in ipairs(servers) do
         insert(r.servers, { host = server.host or "127.0.0.1", server.port or 8087 })
     end
-    setmetatable(r, client_mt)
+    setmetatable(r, mt)
     return r
 end
 
@@ -55,13 +119,21 @@ local function rr_connect(self)
     return true
 end
 
-function client_mt.bucket(self, name)
-    local b = {
-        name = name,
+function mt.connect(self)
+    local c = {
         client = self,
         sock = tcp()
     }
     rr_connect(self)
+    setmetatable(c, mt)
+    return c
+end
+
+function client_mt.bucket(self, name)
+    local b = {
+        name = name,
+        client = self
+    }
     setmetatable(b, client_mt)
     return b
 end
@@ -75,41 +147,12 @@ function bucket_mt.new(self, key)
     return o
 end
 
-function bucket_mt.get(self, key)
-    local req = {
-        bucket = self.name,
-        key = key
-    }
-    
-    -- XXX: error checking??
-    local msg = RpbGetReq(req)
-    local bin = msg:Serialize()
-    -- is #bin correct here? serialize shoudlr eturn a len, but it doesn't...
-    local bytes, err = sock:send({ #bin, bin })
-    if not bytes then
-        return nil, err
-    end
-    
-    -- length is an integer at beginning
-    local bytes, err = sock:receive(4)
-    if not bytes then
-        return nil, err
-    end
-    bytes = tonumber(bytes)
-    if not bytes then
-        return nil, "unable to convert length to a number"
-    end
-    local msg, err = sock:receive(bytes)
-    if not msg then
-        return nil, err
-    end
-    
-    local response, off = RpbGetResp():Parse(msg)
-    -- response is a RpbGetResp
+local response_funcs = {}
 
+function response_funcs.GetResp(msg)
+    local response, off = RpbGetResp():Parse(msg)
     -- we only support single gets currently
     local content = response.content[1]
-
     -- there is probably a more effecient way to do this    
     local o = {
         bucket = self,
@@ -128,8 +171,63 @@ function bucket_mt.get(self, key)
     
     o.meta = meta{}
     setmetatable(o, object_mt)
-    
     return o
+end
+
+function response_funcs.ErrorResp(msg)
+    local response, off = RpbGetResp():Parse(msg)
+    return nil, errmsg, errcode
+}
+
+local function handle_response(client)
+    local sock = client.sock
+    -- length is an integer at beginning
+    local bytes, err = sock:receive(4)
+    if not bytes then
+        return nil, err
+    end
+    bytes = tonumber(bytes)
+    if not bytes then
+        client:close(true)
+        return nil, "unable to convert length to a number"
+    end
+    -- we should receive this and unpack it...
+    local msgcode, err = sock:receive(1)
+    local msgtype = MESSAGE_CODES.msgcode
+    if not msgtype then
+        client:close(true)
+        return nil, "unknow message code: " .. msgcode
+    end
+    local func = response_funcs[msgtype]
+    if not func then
+        client:close(true)
+        return nil, "unhandled message type: " .. msgtype
+    end
+
+    local msg, err = sock:receive(bytes-1)
+    if not msg then
+        client:close(true)
+        return nil, err
+    end
+    
+    return func(msg)
+end
+
+function bucket_mt.get(self, key)
+    local request = {
+        bucket = self.name,
+        key = key
+    }
+    -- XXX: error checking??
+    local msg = RpbGetReq(request)
+    local bin = msg:Serialize()
+    -- is #bin correct here? serialize shoudl return a len, but it doesn't...
+    local bytes, err = sock:send({ #bin + 1, MESSAGE_CODES.GetResp, bin })
+    if not bytes then
+        return nil, err
+    end
+    
+    return handle_response(client)
 end
 
 function bucket_mt.get_or_new(self, key)
