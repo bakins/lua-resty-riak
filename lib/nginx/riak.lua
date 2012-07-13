@@ -1,5 +1,6 @@
 locla _M = {}
 
+-- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
 -- riak_kv.proto should be in the include path
