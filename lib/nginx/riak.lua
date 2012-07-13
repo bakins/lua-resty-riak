@@ -1,5 +1,7 @@
 local _M = {}
 
+_M._VERSION = '0.0.1'
+
 -- https://wiki.basho.com/PBC-API.html
 
 -- this is based closely on the riak ruby client
@@ -8,8 +10,9 @@ local _M = {}
 local pb = require "pb"
 
 -- riak_kv.proto should be in the include path
-local riak_kv = require "riak_kv"
-locla riak = require "riak"
+local riak_kv = require "nginx.riak.protos.riak_kv"
+local riak = require "nginx.riak.protos.riak"
+local bit = require "bit"
 
 local RpbGetReq = riak_kv.RpbGetReq
 local RpbGetResp = riak_ks.RpbGetResp
@@ -25,18 +28,6 @@ local object_mt = {}
 local insert = table.insert
 local tcp = ngx.socket.tcp
 local mod = math.mod
-
-local ffi = require "ffi"
-local bit = require "bit"
-
-ffi.cdef[[
-        uint32_t htonl(uint32_t hostlong);
-        uint16_t htons(uint16_t hostshort);
-        uint32_t ntohl(uint32_t netlong);
-        uint16_t ntohs(uint16_t netshort);  
-
-        typedef struct { uint32_t length; uint8_t code; } riak_message_header_t;
-]]
 
 
 local MESSAGE_CODES = {
@@ -208,6 +199,11 @@ local empty_response_okay = {
     SetBucketResp = 1
 }
 
+local bor, rshift, band, lshift = bit.bor, bit.rshift, bit.band, bit.lshift
+local function endian_swap(x)
+    return bor(rshift(x, 24), band(lshift(x, 8), 0x00FF0000), band(rshift(x, 8), 0x0000FF00), lshift(x, 24))
+end
+
 function client_mt.handle_response(client)
     local sock = client.sock
     local bytes, err = sock:receive(5)
@@ -221,8 +217,8 @@ function client_mt.handle_response(client)
     end
     
     local msgcode = bit.band(bytes, 0x1f)
-    bytes = C.ntohl(bit.rshift(bytes, 4))
-    
+    bytes = endian_swap(bit.rshift(bytes, 4))
+
     -- length is an integer at beginning
     --[[
     local bytes, err = sock:receive(4)
@@ -275,7 +271,7 @@ local function send_request(client, msgcode, encoder, request)
     local bin = msg:Serialize()
     -- is #bin correct here? serialize should return a len, but it doesn't...
     --local bytes, err = sock:send({ #bin + 1, msgcode, bin })
-    local info = bit.bor(bit.lshift(C.htonl(#bin + 1), 4), msgcode)
+    local info = bor(lshift(endian_swap(#bin + 1), 4), msgcode)
     local bytes, err = sock:send({ info, bin })
     if not bytes then
         return nil, err
