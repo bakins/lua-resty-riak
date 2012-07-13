@@ -1,4 +1,6 @@
-locla _M = {}
+local _M = {}
+
+-- I'm not real sure how we get errors from riak via pb??
 
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
@@ -8,6 +10,8 @@ local riak_kv = require "riak_kv"
 
 local RpbGetReq = riak_kv.RpbGetReq
 local RpbGetResp = riak_ks.RpbGetResp
+local RpbPutReq = riak_kv.RpbPutReq
+local RpbPutResp = riak_kb.RpbPutResp
 
 local client_mt = {}
 local bucket_mt = {}
@@ -64,7 +68,8 @@ end
 
 function bucket_mt.new(self, key)
     local o = {
-        bucket = self
+        bucket = self,
+        meta = {}
     }
     setmetatable(o, object_mt)
     return o
@@ -80,7 +85,7 @@ function bucket_mt.get(self, key)
     local msg = RpbGetReq(req)
     local bin = msg:Serialize()
     -- is #bin correct here? serialize shoudlr eturn a len, but it doesn't...
-    local bytes, err = sock:send({ #bin, cmd })
+    local bytes, err = sock:send({ #bin, bin })
     if not bytes then
         return nil, err
     end
@@ -108,7 +113,7 @@ function bucket_mt.get(self, key)
     -- there is probably a more effecient way to do this    
     local o = {
         bucket = self,
-        vclock = response.vclock,
+        --vclock = response.vclock,
         value = content.value,
         charset = content.charset,
         content_encoding =  content.content_encoding
@@ -147,7 +152,62 @@ function bucket_mt.close(self, really_close)
     end
 end
 
+-- only support named keys for now
 function object_mt.store(self)
+    if not self.content_type then
+        return nil, "content_type is required"
+    end
+
+    if not self.key then
+        return nil, "only support named keys for now"
+    end
+    
+    local meta = {}
+    for k,v in pairs(self.meta) do
+        insert(meta, { key = k, value = v })
+    end
+
+    local request = {
+        bucket = self.bucket.name,
+        key = self.key
+        --vclock = self.vclock,
+        content = {
+            value = self.value,
+            content_type = self.content_type,
+            charset = self.charset,
+            content_encoding = self.content_encoding, 
+            usermeta = meta
+        }
+    }
+    
+    -- XXX: error checking??
+    local msg = RpbPutReq(request)
+    local bin = msg:Serialize()
+    -- is #bin correct here? serialize shoudl return a len, but it doesn't seem to...
+    local bytes, err = sock:send({ #bin, bin })
+    if not bytes then
+        return nil, err
+    end
+    
+    -- length is an integer at beginning
+    local bytes, err = sock:receive(4)
+    if not bytes then
+        return nil, err
+    end
+    bytes = tonumber(bytes)
+    if not bytes then
+        return nil, "unable to convert length to a number"
+    end
+    local msg, err = sock:receive(bytes)
+    if not msg then
+        return nil, err
+    end
+    
+    local response, off = RpbPutResp():Parse(msg)
+    -- response is a RpbPutResp
+    -- we don't do anything with response currently...
+
+    return self, nil
 end
 
 function object_mt.reload(self, force)
