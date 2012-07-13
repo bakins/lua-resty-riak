@@ -1,5 +1,7 @@
 local _M = {}
 
+-- https://wiki.basho.com/PBC-API.html
+
 -- this is based closely on the riak ruby client
 
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
