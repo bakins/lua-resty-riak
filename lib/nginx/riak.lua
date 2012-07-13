@@ -179,7 +179,13 @@ function response_funcs.ErrorResp(msg)
     return nil, errmsg, errcode
 }
 
-local function handle_response(client)
+function response_funcs.PutResp(msg)
+    local response, off = RpbPutResp():Parse(msg)
+    -- we don't really do anything here...
+    return true
+end
+
+function client_mt.handle_response(client)
     local sock = client.sock
     -- length is an integer at beginning
     local bytes, err = sock:receive(4)
@@ -213,21 +219,41 @@ local function handle_response(client)
     return func(msg)
 end
 
+
+-- ugly...
+local function send_request(client, msgcode, encoder, request)
+    -- XXX: error checking??
+    local msg = encoder(request)
+    local bin = msg:Serialize()
+    -- is #bin correct here? serialize should return a len, but it doesn't...
+    local bytes, err = sock:send({ #bin + 1, msgcode, bin })
+    if not bytes then
+        return nil, err
+    end
+end
+
+local request_encoders = {
+    GetResp = RpbGetReq,
+    PutReq = RpbPutReq
+}
+
+for k,v in pairs(request_encoders) do
+    client_mt[k] = function(client, request) 
+                       return send_request(client, MESSAGE_CODES[k], v, request)
+                   end
+end
+
 function bucket_mt.get(self, key)
     local request = {
         bucket = self.name,
         key = key
     }
-    -- XXX: error checking??
-    local msg = RpbGetReq(request)
-    local bin = msg:Serialize()
-    -- is #bin correct here? serialize shoudl return a len, but it doesn't...
-    local bytes, err = sock:send({ #bin + 1, MESSAGE_CODES.GetResp, bin })
-    if not bytes then
-        return nil, err
+    local client = self.client
+    local rc, err = client:GetReq(request)
+    if not rc then
+        return rc, err
     end
-    
-    return handle_response(client)
+    return client:handle_response()
 end
 
 function bucket_mt.get_or_new(self, key)
@@ -278,34 +304,16 @@ function object_mt.store(self)
         }
     }
     
-    -- XXX: error checking??
-    local msg = RpbPutReq(request)
-    local bin = msg:Serialize()
-    -- is #bin correct here? serialize shoudl return a len, but it doesn't seem to...
-    local bytes, err = sock:send({ #bin, bin })
-    if not bytes then
-        return nil, err
-    end
+    local client = self.bucket.client
+     
+    local rc, err = client:PutReq(request)
     
-    -- length is an integer at beginning
-    local bytes, err = sock:receive(4)
-    if not bytes then
-        return nil, err
+    local rc, err = client:handle_response()
+    if rc then
+        return self
+    else
+        return rc, err
     end
-    bytes = tonumber(bytes)
-    if not bytes then
-        return nil, "unable to convert length to a number"
-    end
-    local msg, err = sock:receive(bytes)
-    if not msg then
-        return nil, err
-    end
-    
-    local response, off = RpbPutResp():Parse(msg)
-    -- response is a RpbPutResp
-    -- we don't do anything with response currently...
-
-    return self, nil
 end
 
 function object_mt.reload(self, force)
