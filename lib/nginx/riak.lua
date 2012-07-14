@@ -9,6 +9,7 @@ _M._VERSION = '0.0.1'
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
+-- maybe investigate http://code.google.com/p/lua-bitstring/?
 require "pack"
 
 -- riak_kv.proto should be in the include path
