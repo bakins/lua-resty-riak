@@ -11,8 +11,10 @@ require "luarocks.loader"
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
+require "pack"
+
 -- riak_kv.proto should be in the include path
-local riak = require "nginx.riak.protos.riak"
+local riak = pb.require "nginx.riak.protos.riak"
 local riak_kv = require "nginx.riak.protos.riak_kv"
 local bit = require "bit"
 
@@ -30,8 +32,11 @@ local object_mt = {}
 local insert = table.insert
 local tcp = ngx.socket.tcp
 local mod = math.mod
+local pack = string.pack
+local unpack = string.unpack
 
 
+-- bleah, this is ugly
 local MESSAGE_CODES = {
     ErrorResp = "0",
     ["0"] = "ErrorResp",
@@ -95,7 +100,7 @@ local MESSAGE_CODES = {
 
 -- servers should be in the form { {:host => host/ip, :port => :port }
 function _M.new(servers, options)
-    optiosn = options or {}
+    options = options or {}
     local r = {
         servers = {},
         _current_server = 1,
@@ -104,38 +109,51 @@ function _M.new(servers, options)
         keepalive_pool_size = options.keepalive_pool_size,
         really_close = options.really_close
     }
-    servers = servers or {}
+    servers = servers or {{ host = "127.0.0.1", port = 8087 }}
     for _,server in ipairs(servers) do
-        insert(r.servers, { host = server.host or "127.0.0.1", server.port or 8087 })
+        if "table" == type(server) then
+            insert(r.servers, { host = server.host or "127.0.0.1", port = server.port or 8087 })
+        else
+            insert(r.servers, { host = server, port = 8087 })
+        end
     end
-    setmetatable(r, mt)
+    
+    setmetatable(r, { __index = mt })
     return r
 end
 
 -- TODO: ngixn socket pool stuff?
 local function rr_connect(self)
     local sock = self.sock
-    local servers = self.client.servers
-    local curr = mod(self.client._current_server + 1, #servers) + 1
-    self.client._current_server = curr
+    local servers = self.riak.servers
+    local curr = mod(self.riak._current_server + 1, #servers) + 1
+    self.riak._current_server = curr
     local server = servers[curr]
+    print(server.host, server.port)
+
+    if self.timeout then
+        sock:settimeout(timeout)
+    end
+
     local ok, err = sock:connect(server.host, server.port)
     if not ok then
         return nil, err
     end
-    if self.timeout then
-        sock:settimeout(timeout)
-    end
-    return true
+    return true, nil
 end
 
 function mt.connect(self)
     local c = {
-        client = self,
+        riak = self,
         sock = tcp()
     }
-    rr_connect(self)
-    setmetatable(c, client_mt)
+    local ok, err = rr_connect(c)
+    print(ok)
+    if not ok then
+        print(err)
+        return nil, err
+    end
+    setmetatable(c,  { __index = client_mt })
     return c
 end
 
@@ -144,16 +162,17 @@ function client_mt.bucket(self, name)
         name = name,
         client = self
     }
-    setmetatable(b, client_mt)
+    setmetatable(b, { __index = bucket_mt })
     return b
 end
 
 function bucket_mt.new(self, key)
     local o = {
         bucket = self,
+        key = key,
         meta = {}
     }
-    setmetatable(o, object_mt)
+    setmetatable(o,  { __index = object_mt })
     return o
 end
 
@@ -175,12 +194,13 @@ function response_funcs.GetResp(msg)
     }
     
     local meta = {}
-    for _,m in ipairs(content.usermeta) do
-        meta[m.key] = m.val
+    if content.usermeta then 
+        for _,m in ipairs(content.usermeta) do
+            meta[m.key] = m.val
+        end
     end
-    
-    o.meta = meta{}
-    setmetatable(o, object_mt)
+    o.meta = meta
+    setmetatable(o,  { __index = object_mt })
     return o
 end
 
@@ -203,27 +223,23 @@ local empty_response_okay = {
     SetBucketResp = 1
 }
 
-local bor, rshift, band, lshift = bit.bor, bit.rshift, bit.band, bit.lshift
-local function endian_swap(x)
-    return bor(rshift(x, 24), band(lshift(x, 8), 0x00FF0000), band(rshift(x, 8), 0x0000FF00), lshift(x, 24))
-end
-
 function client_mt.handle_response(client)
     local sock = client.sock
-    local bytes, err = sock:receive(5)
+    local bytes, err, partial = sock:receive(5)
     if not bytes then
+        print(err)
         return nil, err
     end
-    bytes = tonumber(bytes)
-    if not bytes then
-        client:close(true)
-        return nil, "unable to convert length to a number"
+    
+    print(#bytes)
+    local _, length, msgcode = unpack(bytes, ">Ib")
+    local msgtype = MESSAGE_CODES[tostring(msgcode)]
+    
+    if not msgtype then
+        return nil, "unhandled response type"
     end
     
-    local msgcode = band(bytes, 0x1f)
-    bytes = endian_swap(rshift(bytes, 4))
-
-    bytes = bytes - 1
+    bytes = length - 1
     if bytes <= 0 then
         if empty_response_okay[msgtype] then
             return true, nil
@@ -239,26 +255,36 @@ function client_mt.handle_response(client)
         return nil, err
     end
     
+    local func = response_funcs[msgtype]
     return func(msg)
 end
 
+local ffi = require "ffi"
+ffi.cdef[[
+        uint32_t htonl(uint32_t hostlong);
+]]
+
+local function _set_byte4(n)
+    return string.char(band(n, 0xff), band(rshift(n, 8), 0xff),
+        band(rshift(n, 16), 0xff), band(rshift(n, 24), 0xff))
+end
 
 -- ugly...
 local function send_request(client, msgcode, encoder, request)
-    -- XXX: error checking??
     local msg = encoder(request)
     local bin = msg:Serialize()
-    -- is #bin correct here? serialize should return a len, but it doesn't...
-    --local bytes, err = sock:send({ #bin + 1, msgcode, bin })
-    local info = bor(lshift(endian_swap(#bin + 1), 4), msgcode)
-    local bytes, err = sock:send({ info, bin })
+    
+    local info = pack(">Ib", #bin + 1, msgcode)
+
+    local bytes, err = client.sock:send({ info, bin })
     if not bytes then
         return nil, err
     end
+    return true, nil
 end
 
 local request_encoders = {
-    GetResp = RpbGetReq,
+    GetReq = RpbGetReq,
     PutReq = RpbPutReq
 }
 
@@ -278,7 +304,12 @@ function bucket_mt.get(self, key)
     if not rc then
         return rc, err
     end
-    return client:handle_response()
+    local o, err = client:handle_response()
+    if not o then
+        return nil, err
+    end
+    o.key = key
+    return o
 end
 
 function bucket_mt.get_or_new(self, key)
@@ -289,7 +320,7 @@ function bucket_mt.get_or_new(self, key)
     return o, err
 end
 
-function bucket_mt.close(self, really_close)
+function client_mt.close(self, really_close)
     if really_close or self.really_close then
         return self.sock:close()
     else
@@ -333,9 +364,14 @@ function object_mt.store(self)
      
     local rc, err = client:PutReq(request)
     
-    local rc, err = client:handle_response()
+    print(rc, err)
+
+    rc, err = client:handle_response()
+
+    print(rc, err)
+    
     if rc then
-        return self
+        return true, nil
     else
         return rc, err
     end
