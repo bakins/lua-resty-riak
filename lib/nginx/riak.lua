@@ -252,16 +252,6 @@ function client_mt.handle_response(client)
     return func(msg)
 end
 
-local ffi = require "ffi"
-ffi.cdef[[
-        uint32_t htonl(uint32_t hostlong);
-]]
-
-local function _set_byte4(n)
-    return string.char(band(n, 0xff), band(rshift(n, 8), 0xff),
-        band(rshift(n, 16), 0xff), band(rshift(n, 24), 0xff))
-end
-
 -- ugly...
 local function send_request(client, msgcode, encoder, request)
     local msg = encoder(request)
