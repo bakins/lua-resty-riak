@@ -6,18 +6,20 @@ _M._VERSION = '0.0.1'
 
 -- this is based closely on the riak ruby client
 
+require "luarocks.loader"
+
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
 -- riak_kv.proto should be in the include path
-local riak_kv = require "nginx.riak.protos.riak_kv"
 local riak = require "nginx.riak.protos.riak"
+local riak_kv = require "nginx.riak.protos.riak_kv"
 local bit = require "bit"
 
 local RpbGetReq = riak_kv.RpbGetReq
-local RpbGetResp = riak_ks.RpbGetResp
+local RpbGetResp = riak_kv.RpbGetResp
 local RpbPutReq = riak_kv.RpbPutReq
-local RpbPutResp = riak_kb.RpbPutResp
+local RpbPutResp = riak_kv.RpbPutResp
 local RpbErrorResp = riak.RpbErrorResp
 
 local mt = {}
@@ -93,6 +95,7 @@ local MESSAGE_CODES = {
 
 -- servers should be in the form { {:host => host/ip, :port => :port }
 function _M.new(servers, options)
+    optiosn = options or {}
     local r = {
         servers = {},
         _current_server = 1,
@@ -101,6 +104,7 @@ function _M.new(servers, options)
         keepalive_pool_size = options.keepalive_pool_size,
         really_close = options.really_close
     }
+    servers = servers or {}
     for _,server in ipairs(servers) do
         insert(r.servers, { host = server.host or "127.0.0.1", server.port or 8087 })
     end
@@ -110,7 +114,7 @@ end
 
 -- TODO: ngixn socket pool stuff?
 local function rr_connect(self)
-    locla sock = self.sock
+    local sock = self.sock
     local servers = self.client.servers
     local curr = mod(self.client._current_server + 1, #servers) + 1
     self.client._current_server = curr
@@ -131,7 +135,7 @@ function mt.connect(self)
         sock = tcp()
     }
     rr_connect(self)
-    setmetatable(c, mt)
+    setmetatable(c, client_mt)
     return c
 end
 
@@ -165,7 +169,7 @@ function response_funcs.GetResp(msg)
         --vclock = response.vclock,
         value = content.value,
         charset = content.charset,
-        content_encoding =  content.content_encoding
+        content_encoding =  content.content_encoding,
         content_type = content.value,
         last_mod = content.last_mod
     }
@@ -181,9 +185,9 @@ function response_funcs.GetResp(msg)
 end
 
 function response_funcs.ErrorResp(msg)
-    local response, off = RpbGetResp():Parse(msg)
+    local response, off = RpbErrorResp():Parse(msg)
     return nil, errmsg, errcode
-}
+end
 
 function response_funcs.PutResp(msg)
     local response, off = RpbPutResp():Parse(msg)
@@ -193,7 +197,7 @@ end
 
 local empty_response_okay = {
     PingResp = 1,
-    SetClientIdResp = 1
+    SetClientIdResp = 1,
     PutResp = 1,
     DelResp = 1,
     SetBucketResp = 1
@@ -216,37 +220,12 @@ function client_mt.handle_response(client)
         return nil, "unable to convert length to a number"
     end
     
-    local msgcode = bit.band(bytes, 0x1f)
-    bytes = endian_swap(bit.rshift(bytes, 4))
+    local msgcode = band(bytes, 0x1f)
+    bytes = endian_swap(rshift(bytes, 4))
 
-    -- length is an integer at beginning
-    --[[
-    local bytes, err = sock:receive(4)
-    if not bytes then
-        return nil, err
-    end
-    bytes = tonumber(bytes)
-    if not bytes then
-        client:close(true)
-        return nil, "unable to convert length to a number"
-    end
-    -- we should receive this and unpack it...
-    
-    local msgcode, err = sock:receive(1)
-    local msgtype = MESSAGE_CODES.msgcode
-    if not msgtype then
-        client:close(true)
-        return nil, "unknown message code: " .. msgcode
-    end
-    local func = response_funcs[msgtype]
-    if not func then
-        client:close(true)
-        return nil, "unhandled message type: " .. msgtype
-    end
-    --]]
-    local bytes = bytes - 1
+    bytes = bytes - 1
     if bytes <= 0 then
-        if empty_response_okay.msgtype then
+        if empty_response_okay[msgtype] then
             return true, nil
         else
             client:close(true)
@@ -339,10 +318,10 @@ function object_mt.store(self)
 
     local request = {
         bucket = self.bucket.name,
-        key = self.key
+        key = self.key,
         --vclock = self.vclock,
         content = {
-            value = self.value,
+            value = self.value or "",
             content_type = self.content_type,
             charset = self.charset,
             content_encoding = self.content_encoding, 
