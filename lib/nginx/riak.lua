@@ -4,9 +4,7 @@ _M._VERSION = '0.0.1'
 
 -- https://wiki.basho.com/PBC-API.html
 
--- this is based closely on the riak ruby client
-
-require "luarocks.loader"
+-- this is insired by the riak ruby client
 
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
@@ -122,14 +120,13 @@ function _M.new(servers, options)
     return r
 end
 
--- TODO: ngixn socket pool stuff?
+-- TODO: nginx socket pool stuff?
 local function rr_connect(self)
     local sock = self.sock
     local servers = self.riak.servers
     local curr = mod(self.riak._current_server + 1, #servers) + 1
     self.riak._current_server = curr
     local server = servers[curr]
-    print(server.host, server.port)
 
     if self.timeout then
         sock:settimeout(timeout)
@@ -148,9 +145,7 @@ function mt.connect(self)
         sock = tcp()
     }
     local ok, err = rr_connect(c)
-    print(ok)
     if not ok then
-        print(err)
         return nil, err
     end
     setmetatable(c,  { __index = client_mt })
@@ -227,11 +222,9 @@ function client_mt.handle_response(client)
     local sock = client.sock
     local bytes, err, partial = sock:receive(5)
     if not bytes then
-        print(err)
         return nil, err
     end
     
-    print(#bytes)
     local _, length, msgcode = unpack(bytes, ">Ib")
     local msgtype = MESSAGE_CODES[tostring(msgcode)]
     
@@ -364,11 +357,7 @@ function object_mt.store(self)
      
     local rc, err = client:PutReq(request)
     
-    print(rc, err)
-
     rc, err = client:handle_response()
-
-    print(rc, err)
     
     if rc then
         return true, nil
