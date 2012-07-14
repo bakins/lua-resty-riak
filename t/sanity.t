@@ -33,25 +33,20 @@ __DATA__
             local r = riak.new(nil, { timeout = 100 })
             local client = r:connect()
             local b = client:bucket("test")
-            local o, err = b:get("doc")
-            if not o then
-                ngx.say(err)
-            end
-            ngx.say(o.key)
-            o = b:new("1")
+            local o = b:new("1")
             o.value = "test"
             o.content_type = "text/plain"
             local rc, err = o:store()
             ngx.say(rc)
-            ngx.say(err)
+            local o, err = b:get("1")
+            ngx.say(o.value)
             client:close()
         ';
     }
 --- request
 GET /t
 --- response_body
-doc
 true
-nil
+test
 --- no_error_log
 [error]
