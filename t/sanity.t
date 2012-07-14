@@ -3,7 +3,7 @@
 use Test::Nginx::Socket;
 use Cwd qw(cwd);
 
-repeat_each(1);
+repeat_each(2);
 
 #plan tests => repeat_each() * blocks();
 plan tests => repeat_each() * blocks() * 3;
@@ -23,7 +23,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: put and delete simple string
+=== TEST 1: put and get simple string
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
