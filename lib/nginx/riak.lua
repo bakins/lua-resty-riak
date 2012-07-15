@@ -25,7 +25,6 @@ local RpbErrorResp = riak.RpbErrorResp
 
 local mt = {}
 local client_mt = {}
-local bucket_mt = {}
 
 local insert = table.insert
 local tcp = ngx.socket.tcp
@@ -33,7 +32,7 @@ local mod = math.mod
 local pack = string.pack
 local unpack = string.unpack
 
-local robject = require("nginx.riak.object")
+local rbucket = require("nginx.riak.bucket")
 
 -- bleah, this is ugly
 local MESSAGE_CODES = {
@@ -154,16 +153,7 @@ function mt.connect(self)
 end
 
 function client_mt.bucket(self, name)
-    local b = {
-        name = name,
-        client = self
-    }
-    setmetatable(b, { __index = bucket_mt })
-    return b
-end
-
-function bucket_mt.new(self, key)
-    return robject.new(self, key)
+    return rbucket.new(self, name)
 end
 
 local response_funcs = {}
@@ -275,17 +265,6 @@ for k,v in pairs(request_encoders) do
                    end
 end
 
-function bucket_mt.get(self, key)
-    return robject.get(self, key)
-end
-
-function bucket_mt.get_or_new(self, key)
-    local o, err = self:get(key)
-    if not o and "not found" == err then
-        o, err = self:new(key)
-    end
-    return o, err
-end
 
 function client_mt.close(self, really_close)
     if really_close or self.really_close then
