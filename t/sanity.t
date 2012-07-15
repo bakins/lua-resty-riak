@@ -54,3 +54,29 @@ true
 test
 --- no_error_log
 [error]
+
+=== TEST 2: not found 
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            require "luarocks.loader"
+            local riak = require "nginx.riak"
+            local r = riak.new(nil, { timeout = 10 })
+            local client = r:connect()
+            local b = client:bucket("test")
+            local o, err = b:get("77")
+            if not o then
+                ngx.say(err)
+            else
+                ngx.say(o.value)
+            end
+            client:close()
+        ';
+    }
+--- request
+GET /t
+--- response_body
+not found
+--- no_error_log
+[error]
