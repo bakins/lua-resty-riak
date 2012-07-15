@@ -26,7 +26,6 @@ local RpbErrorResp = riak.RpbErrorResp
 local mt = {}
 local client_mt = {}
 local bucket_mt = {}
-local object_mt = {}
 
 local insert = table.insert
 local tcp = ngx.socket.tcp
@@ -34,7 +33,7 @@ local mod = math.mod
 local pack = string.pack
 local unpack = string.unpack
 
-local object = require("nginx.riak.object")
+local robject = require("nginx.riak.object")
 
 -- bleah, this is ugly
 local MESSAGE_CODES = {
@@ -164,7 +163,7 @@ function client_mt.bucket(self, name)
 end
 
 function bucket_mt.new(self, key)
-    return object.new(self, key)
+    return robject.new(self, key)
 end
 
 local response_funcs = {}
@@ -191,7 +190,6 @@ function response_funcs.GetResp(msg)
         end
     end
     o.meta = meta
-    setmetatable(o,  { __index = object_mt })
     return o
 end
 
@@ -278,7 +276,7 @@ for k,v in pairs(request_encoders) do
 end
 
 function bucket_mt.get(self, key)
-    return object.get(self, key)
+    return robject.get(self, key)
 end
 
 function bucket_mt.get_or_new(self, key)
