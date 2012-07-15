@@ -220,6 +220,8 @@ function client_mt.handle_response(client)
     if bytes <= 0 then
         if empty_response_okay[msgtype] then
             return true, nil
+        elseif "GetResp" == msgtype then
+            return nil, "not found"
         else
             client:close(true)
             return nil, "empty response"
