@@ -30,7 +30,7 @@ __DATA__
         content_by_lua '
             require "luarocks.loader"
             local riak = require "nginx.riak"
-            local r = riak.new(nil, { timeout = 100 })
+            local r = riak.new(nil, { timeout = 10 })
             local client = r:connect()
             local b = client:bucket("test")
             local o = b:new("1")
@@ -39,7 +39,11 @@ __DATA__
             local rc, err = o:store()
             ngx.say(rc)
             local o, err = b:get("1")
-            ngx.say(o.value)
+            if not o then
+                ngx.say(err)
+            else
+                ngx.say(o.value)
+            end
             client:close()
         ';
     }
