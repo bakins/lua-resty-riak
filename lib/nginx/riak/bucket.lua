@@ -29,4 +29,12 @@ function mt.get_or_new(self, key)
     return o, err
 end
 
+function mt.delete(self, key)
+    local request = {
+        bucket = self.name,
+        key = key
+    }
+    return self.client:DelReq(request)
+end
+
 return _M
