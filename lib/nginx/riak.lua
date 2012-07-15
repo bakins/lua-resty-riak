@@ -21,6 +21,9 @@ local RpbGetReq = riak_kv.RpbGetReq
 local RpbGetResp = riak_kv.RpbGetResp
 local RpbPutReq = riak_kv.RpbPutReq
 local RpbPutResp = riak_kv.RpbPutResp
+local RpbDelReq = riak_kv.RpbDelReq
+local RpbDelResp = riak_kv.RpbDelResp
+
 local RpbErrorResp = riak.RpbErrorResp
 
 local mt = {}
@@ -224,7 +227,7 @@ function client_mt.handle_response(client)
             return nil, "not found"
         else
             client:close(true)
-            return nil, "empty response"
+            return nil, ("empty response" .. msgtype)
         end
     end
     -- hack: some messages can return no body on success?
@@ -254,7 +257,8 @@ end
 
 local request_encoders = {
     GetReq = RpbGetReq,
-    PutReq = RpbPutReq
+    PutReq = RpbPutReq,
+    DelReq = RpbDelReq
 }
 
 for k,v in pairs(request_encoders) do
