@@ -65,7 +65,7 @@ test
             local r = riak.new(nil, { timeout = 10 })
             local client = r:connect()
             local b = client:bucket("test")
-            local o, err = b:get("77")
+            local o, err = b:get("787")
             if not o then
                 ngx.say(err)
             else
