@@ -34,6 +34,7 @@ local mod = math.mod
 local pack = string.pack
 local unpack = string.unpack
 
+local object = require("nginx.riak.object")
 
 -- bleah, this is ugly
 local MESSAGE_CODES = {
@@ -163,13 +164,7 @@ function client_mt.bucket(self, name)
 end
 
 function bucket_mt.new(self, key)
-    local o = {
-        bucket = self,
-        key = key,
-        meta = {}
-    }
-    setmetatable(o,  { __index = object_mt })
-    return o
+    return object.new(self, key)
 end
 
 local response_funcs = {}
@@ -274,26 +269,16 @@ local request_encoders = {
 
 for k,v in pairs(request_encoders) do
     client_mt[k] = function(client, request) 
-                       return send_request(client, MESSAGE_CODES[k], v, request)
+                       local rc, err = send_request(client, MESSAGE_CODES[k], v, request)
+                       if not rc then
+                           return rc, err
+                       end
+                       return client:handle_response()
                    end
 end
 
 function bucket_mt.get(self, key)
-    local request = {
-        bucket = self.name,
-        key = key
-    }
-    local client = self.client
-    local rc, err = client:GetReq(request)
-    if not rc then
-        return rc, err
-    end
-    local o, err = client:handle_response()
-    if not o then
-        return nil, err
-    end
-    o.key = key
-    return o
+    return object.get(self, key)
 end
 
 function bucket_mt.get_or_new(self, key)
@@ -314,50 +299,6 @@ function client_mt.close(self, really_close)
             return self.sock:setkeepalive()
         end
     end
-end
-
--- only support named keys for now
-function object_mt.store(self)
-    if not self.content_type then
-        return nil, "content_type is required"
-    end
-
-    if not self.key then
-        return nil, "only support named keys for now"
-    end
-    
-    local meta = {}
-    for k,v in pairs(self.meta) do
-        insert(meta, { key = k, value = v })
-    end
-
-    local request = {
-        bucket = self.bucket.name,
-        key = self.key,
-        --vclock = self.vclock,
-        content = {
-            value = self.value or "",
-            content_type = self.content_type,
-            charset = self.charset,
-            content_encoding = self.content_encoding, 
-            usermeta = meta
-        }
-    }
-    
-    local client = self.bucket.client
-     
-    local rc, err = client:PutReq(request)
-    
-    rc, err = client:handle_response()
-    
-    if rc then
-        return true, nil
-    else
-        return rc, err
-    end
-end
-
-function object_mt.reload(self, force)
 end
 
 
