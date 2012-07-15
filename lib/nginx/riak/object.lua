@@ -57,4 +57,8 @@ function mt.store(self)
     return bucket.client:PutReq(request)
 end
 
+function mt.delete(self)
+    return self.bucket:delete(self.key)
+end
+
 return _M
