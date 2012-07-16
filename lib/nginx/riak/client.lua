@@ -1,12 +1,4 @@
 local _M = {}
-
-_M._VERSION = '0.0.1'
-
--- https://wiki.basho.com/PBC-API.html
--- https://github.com/basho/riak_pb
-
--- this is insired by the riak ruby client
-
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
