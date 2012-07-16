@@ -11,13 +11,13 @@ local riak_kv = require "nginx.riak.protos.riak_kv"
 local bit = require "bit"
 
 local RpbGetReq = riak_kv.RpbGetReq
-local RpbGetResp = riak_kv.RpbGetResp
+local RpbGetResp = riak_kv.RpbGetResp()
 local RpbPutReq = riak_kv.RpbPutReq
-local RpbPutResp = riak_kv.RpbPutResp
+local RpbPutResp = riak_kv.RpbPutResp()
 local RpbDelReq = riak_kv.RpbDelReq
 local RpbDelResp = riak_kv.RpbDelResp
 
-local RpbErrorResp = riak.RpbErrorResp
+local RpbErrorResp = riak.RpbErrorResp()
 
 
 local mt = {}
@@ -131,7 +131,7 @@ end
 local response_funcs = {}
 
 function response_funcs.GetResp(msg)
-    local response, off = RpbGetResp():Parse(msg)
+    local response, off = RpbGetResp:Parse(msg)
     -- we only support single gets currently
     local content = response.content[1]
     -- there is probably a more effecient way to do this    
@@ -156,12 +156,12 @@ function response_funcs.GetResp(msg)
 end
 
 function response_funcs.ErrorResp(msg)
-    local response, off = RpbErrorResp():Parse(msg)
+    local response, off = RpbErrorResp:Parse(msg)
     return nil, errmsg, errcode
 end
 
 function response_funcs.PutResp(msg)
-    local response, off = RpbPutResp():Parse(msg)
+    local response, off = RpbPutResp:Parse(msg)
     -- we don't really do anything here...
     return true
 end
