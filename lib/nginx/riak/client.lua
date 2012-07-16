@@ -19,7 +19,7 @@ local RpbDelResp = riak_kv.RpbDelResp
 
 local RpbErrorResp = riak.RpbErrorResp
 
-local mt = {}
+
 local client_mt = {}
 
 local insert = table.insert
@@ -92,30 +92,6 @@ local MESSAGE_CODES = {
     ["28"] = "SearchQueryResp"
 }
 
--- servers should be in the form { {:host => host/ip, :port => :port }
-function _M.new(servers, options)
-    options = options or {}
-    local r = {
-        servers = {},
-        _current_server = 1,
-        timeout = options.timeout,
-        keepalive_timeout = options.keepalive_timeout,
-        keepalive_pool_size = options.keepalive_pool_size,
-        really_close = options.really_close
-    }
-    servers = servers or {{ host = "127.0.0.1", port = 8087 }}
-    for _,server in ipairs(servers) do
-        if "table" == type(server) then
-            insert(r.servers, { host = server.host or "127.0.0.1", port = server.port or 8087 })
-        else
-            insert(r.servers, { host = server, port = 8087 })
-        end
-    end
-    
-    setmetatable(r, { __index = mt })
-    return r
-end
-
 -- TODO: nginx socket pool stuff?
 local function rr_connect(self)
     local sock = self.sock
@@ -135,7 +111,7 @@ local function rr_connect(self)
     return true, nil
 end
 
-function mt.connect(self)
+function _M.connect(riak)
     local c = {
         riak = self,
         sock = tcp()
