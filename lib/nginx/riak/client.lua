@@ -113,7 +113,7 @@ end
 
 function _M.connect(riak)
     local c = {
-        riak = self,
+        riak = riak,
         sock = tcp()
     }
     local ok, err = rr_connect(c)

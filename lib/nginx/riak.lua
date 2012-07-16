@@ -11,6 +11,8 @@ local mt = {}
 
 local client = require "nginx.riak.client"
 
+local insert = table.insert
+
 -- servers should be in the form { {:host => host/ip, :port => :port }
 function _M.new(servers, options)
     options = options or {}
