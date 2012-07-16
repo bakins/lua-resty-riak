@@ -20,7 +20,7 @@ local RpbDelResp = riak_kv.RpbDelResp
 local RpbErrorResp = riak.RpbErrorResp
 
 
-local client_mt = {}
+local mt = {}
 
 local insert = table.insert
 local tcp = ngx.socket.tcp
@@ -120,11 +120,11 @@ function _M.connect(riak)
     if not ok then
         return nil, err
     end
-    setmetatable(c,  { __index = client_mt })
+    setmetatable(c,  { __index = mt })
     return c
 end
 
-function client_mt.bucket(self, name)
+function mt.bucket(self, name)
     return rbucket.new(self, name)
 end
 
@@ -174,7 +174,7 @@ local empty_response_okay = {
     SetBucketResp = 1
 }
 
-function client_mt.handle_response(client)
+function mt.handle_response(client)
     local sock = client.sock
     local bytes, err, partial = sock:receive(5)
     if not bytes then
@@ -231,7 +231,7 @@ local request_encoders = {
 }
 
 for k,v in pairs(request_encoders) do
-    client_mt[k] = function(client, request) 
+    mt[k] = function(client, request) 
                        local rc, err = send_request(client, MESSAGE_CODES[k], v, request)
                        if not rc then
                            return rc, err
@@ -241,7 +241,7 @@ for k,v in pairs(request_encoders) do
 end
 
 
-function client_mt.close(self, really_close)
+function mt.close(self, really_close)
     if really_close or self.really_close then
         return self.sock:close()
     else
