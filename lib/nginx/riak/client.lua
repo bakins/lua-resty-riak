@@ -3,6 +3,7 @@ local _M = {}
 _M._VERSION = '0.0.1'
 
 -- https://wiki.basho.com/PBC-API.html
+-- https://github.com/basho/riak_pb
 
 -- this is insired by the riak ruby client
 
