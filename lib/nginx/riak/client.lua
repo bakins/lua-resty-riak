@@ -6,8 +6,8 @@ local pb = require "pb"
 require "pack"
 
 -- riak_kv.proto should be in the include path
-local riak = pb.require "nginx.riak.protos.riak"
-local riak_kv = require "nginx.riak.protos.riak_kv"
+local riak = pb.require "riak"
+local riak_kv = pb.require "riak_kv"
 local bit = require "bit"
 
 local RpbGetReq = riak_kv.RpbGetReq
