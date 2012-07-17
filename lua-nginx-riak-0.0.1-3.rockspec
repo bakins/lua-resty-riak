@@ -1,5 +1,5 @@
 package = "lua-nginx-riak"
-version = "0.0.1-2"
+version = "0.0.1-3"
 source = {
    url = "http://"
 }
