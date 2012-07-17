@@ -2,6 +2,8 @@ local _M = {}
 
 local mt = {}
 
+local insert = table.insert
+
 function _M.new(bucket, key)
     local o = {
         bucket = bucket,
@@ -39,7 +41,7 @@ function _M.get(bucket, key)
     local meta = {}
     if content.usermeta then 
         for _,m in ipairs(content.usermeta) do
-            meta[m.key] = m.val
+            meta[m.key] = m.value
         end
     end
     object.meta = meta
