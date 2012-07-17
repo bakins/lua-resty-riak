@@ -94,17 +94,26 @@ local MESSAGE_CODES = {
 
 -- TODO: nginx socket pool stuff?
 local function rr_connect(self)
+    self.sock = tcp()
     local sock = self.sock
     local servers = self.riak.servers
-    local curr = mod(self.riak._current_server + 1, #servers) + 1
-    self.riak._current_server = curr
-    local server = servers[curr]
-
-    if self.timeout then
-        sock:settimeout(timeout)
+    
+    local ok, err
+    for i=1,riak.retries do
+        ok, err = nil, nil
+        local curr = mod(self.riak._current_server + 1, #servers) + 1
+        self.riak._current_server = curr
+        local server = servers[curr]
+        
+        if self.timeout then
+            sock:settimeout(timeout)
+        end
+        
+        ok, err = sock:connect(server.host, server.port)
+        if ok then
+            break
+        end
     end
-
-    local ok, err = sock:connect(server.host, server.port)
     if not ok then
         return nil, err
     end
@@ -113,8 +122,7 @@ end
 
 function _M.connect(riak)
     local c = {
-        riak = riak,
-        sock = tcp()
+        riak = riak
     }
     local ok, err = rr_connect(c)
     if not ok then
@@ -122,6 +130,15 @@ function _M.connect(riak)
     end
     setmetatable(c,  { __index = mt })
     return c
+end
+
+function mt.reconnect()
+    self:close(true)
+    local ok, err = rr_connect(c)
+    if not ok then
+        return nil, err
+    end
+    return true, nil
 end
 
 function mt.bucket(self, name)
