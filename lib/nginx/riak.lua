@@ -22,7 +22,8 @@ function _M.new(servers, options)
         timeout = options.timeout,
         keepalive_timeout = options.keepalive_timeout,
         keepalive_pool_size = options.keepalive_pool_size,
-        really_close = options.really_close
+        really_close = options.really_close,
+        retries = options.retries or 3
     }
     servers = servers or {{ host = "127.0.0.1", port = 8087 }}
     for _,server in ipairs(servers) do
