@@ -17,10 +17,21 @@ function _M.get(bucket, key)
         bucket = bucket.name,
         key = key
     }
-    local o, err =  bucket.client:GetReq(request)
+
+    -- this seems really hacky
+    local o, err = bucket.client:GetReq(request)
+    if not o then
+        -- reconnect retries connecting. are we assuming that a bad get means the connection is bad??
+        local ok, err = bucket.client:reconnect()
+        if not ok then
+            return nil, err
+        end
+        o, err = bucket.client:GetReq(request)
+    end
     if not o then
         return nil, err
     end
+
     -- we only support single gets currently
     local content = response.content[1]
     -- there is probably a more effecient way to do this    
