@@ -31,7 +31,7 @@ function _M.get(bucket, key)
         value = content.value,
         charset = content.charset,
         content_encoding =  content.content_encoding,
-        content_type = content.value,
+        content_type = content.content_type,
         last_mod = content.last_mod
     }
     
