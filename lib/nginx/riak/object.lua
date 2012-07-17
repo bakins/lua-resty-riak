@@ -21,9 +21,29 @@ function _M.get(bucket, key)
     if not o then
         return nil, err
     end
-    o.key = key
-    setmetatable(o,  { __index = mt })
-    return o
+    -- we only support single gets currently
+    local content = response.content[1]
+    -- there is probably a more effecient way to do this    
+    local object = {
+        key = key,
+        bucket = bucket,
+        --vclock = response.vclock,
+        value = content.value,
+        charset = content.charset,
+        content_encoding =  content.content_encoding,
+        content_type = content.value,
+        last_mod = content.last_mod
+    }
+    
+    local meta = {}
+    if content.usermeta then 
+        for _,m in ipairs(content.usermeta) do
+            meta[m.key] = m.val
+        end
+    end
+    object.meta = meta
+    setmetatable(object,  { __index = mt })
+    return object
 end
 
 function mt.store(self)

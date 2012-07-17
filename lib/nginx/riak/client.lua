@@ -131,33 +131,12 @@ end
 local response_funcs = {}
 
 function response_funcs.GetResp(msg)
-    local response, off = RpbGetResp:Parse(msg)
-    -- we only support single gets currently
-    local content = response.content[1]
-    -- there is probably a more effecient way to do this    
-    local o = {
-        bucket = self,
-        --vclock = response.vclock,
-        value = content.value,
-        charset = content.charset,
-        content_encoding =  content.content_encoding,
-        content_type = content.value,
-        last_mod = content.last_mod
-    }
-    
-    local meta = {}
-    if content.usermeta then 
-        for _,m in ipairs(content.usermeta) do
-            meta[m.key] = m.val
-        end
-    end
-    o.meta = meta
-    return o
+    return response, off = RpbGetResp:Parse(msg)
 end
 
 function response_funcs.ErrorResp(msg)
     local response, off = RpbErrorResp:Parse(msg)
-    return nil, errmsg, errcode
+    return nil, response.errmsg, response.errcode
 end
 
 function response_funcs.PutResp(msg)
