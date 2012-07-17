@@ -93,14 +93,23 @@ local MESSAGE_CODES = {
 }
 
 -- TODO: nginx socket pool stuff?
-local function rr_connect(self)
-    self.sock = tcp()
-    local sock = self.sock
+function _M.connect(riak)
+    local self = {
+        riak = riak,
+        open = false
+    }
+    setmetatable(self,  { __index = mt })
+    self:reconnect()
+    return self
+end
+
+function mt.reconnect(self)
+    self:close(true)
     local servers = self.riak.servers
-    
     local ok, err
-    for i=1,riak.retries do
-        ok, err = nil, nil
+    for i=1,self.riak.retries do
+        self.sock = tcp()
+        local sock = self.sock
         local curr = mod(self.riak._current_server + 1, #servers) + 1
         self.riak._current_server = curr
         local server = servers[curr]
@@ -108,33 +117,12 @@ local function rr_connect(self)
         if self.timeout then
             sock:settimeout(timeout)
         end
-        
         ok, err = sock:connect(server.host, server.port)
         if ok then
+            self.open = true
             break
         end
     end
-    if not ok then
-        return nil, err
-    end
-    return true, nil
-end
-
-function _M.connect(riak)
-    local c = {
-        riak = riak
-    }
-    local ok, err = rr_connect(c)
-    if not ok then
-        return nil, err
-    end
-    setmetatable(c,  { __index = mt })
-    return c
-end
-
-function mt.reconnect()
-    self:close(true)
-    local ok, err = rr_connect(c)
     if not ok then
         return nil, err
     end
@@ -148,7 +136,7 @@ end
 local response_funcs = {}
 
 function response_funcs.GetResp(msg)
-    return response, off = RpbGetResp:Parse(msg)
+    return RpbGetResp:Parse(msg)
 end
 
 function response_funcs.ErrorResp(msg)
@@ -238,6 +226,10 @@ end
 
 
 function mt.close(self, really_close)
+    if not self.open then
+        return nil, "closed"
+    end
+    self.open = false
     if really_close or self.really_close then
         return self.sock:close()
     else
