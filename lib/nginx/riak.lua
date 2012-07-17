@@ -25,6 +25,9 @@ function _M.new(servers, options)
         really_close = options.really_close,
         retries = options.retries or 3
     }
+    if r.retries <= 0 then
+        r.retries = 1
+    end
     servers = servers or {{ host = "127.0.0.1", port = 8087 }}
     for _,server in ipairs(servers) do
         if "table" == type(server) then
