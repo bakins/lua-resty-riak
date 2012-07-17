@@ -9,7 +9,7 @@ description = {
    license = "BSD" -- or whatever you like
 }
 dependencies = {
---    "lua-pb",
+    "lua-pb",
     "lpack"
 }
 build = {
