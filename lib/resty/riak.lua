@@ -223,22 +223,4 @@ for k,v in pairs(request_encoders) do
                    end
 end
 
-
-function mt.close(self, really_close)
-    if not self.open then
-        return nil, "closed"
-    end
-    self.open = false
-    if really_close or self.really_close then
-        return self.sock:close()
-    else
-        if self.keepalive_timeout or self.keepalive_pool_size then
-            return self.sock:setkeepalive(self.keepalive_timeout, self.keepalive_pool_size)
-        else
-            return self.sock:setkeepalive()
-        end
-    end
-end
-
-
 return _M
