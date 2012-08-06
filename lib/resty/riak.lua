@@ -157,8 +157,8 @@ local empty_response_okay = {
     SetBucketResp = 1
 }
 
-function mt.handle_response(client)
-    local sock = client.sock
+function mt.handle_response(self)
+    local sock = self.sock
     local bytes, err, partial = sock:receive(5)
     if not bytes then
         return nil, err
@@ -178,14 +178,12 @@ function mt.handle_response(client)
         elseif "GetResp" == msgtype then
             return nil, "not found"
         else
-            client:close(true)
             return nil, ("empty response" .. msgtype)
         end
     end
     -- hack: some messages can return no body on success?
     local msg, err = sock:receive(bytes)
     if not msg then
-        client:close(true)
         return nil, err
     end
     
@@ -194,13 +192,13 @@ function mt.handle_response(client)
 end
 
 -- ugly...
-local function send_request(client, msgcode, encoder, request)
+local function send_request(self, msgcode, encoder, request)
     local msg = encoder(request)
     local bin = msg:Serialize()
     
     local info = pack(">Ib", #bin + 1, msgcode)
 
-    local bytes, err = client.sock:send({ info, bin })
+    local bytes, err = self.sock:send({ info, bin })
     if not bytes then
         return nil, err
     end
@@ -214,12 +212,12 @@ local request_encoders = {
 }
 
 for k,v in pairs(request_encoders) do
-    mt[k] = function(client, request) 
-                       local rc, err = send_request(client, MESSAGE_CODES[k], v, request)
+    mt[k] = function(self, request) 
+                       local rc, err = send_request(self, MESSAGE_CODES[k], v, request)
                        if not rc then
                            return rc, err
                        end
-                       return client:handle_response()
+                       return self:handle_response()
                    end
 end
 
