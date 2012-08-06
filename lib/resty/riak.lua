@@ -30,7 +30,7 @@ local mod = math.mod
 local pack = string.pack
 local unpack = string.unpack
 
-local rbucket = require("resty.riak.bucket")
+local bucket = require("resty.riak.bucket")
 
 local tcp = ngx.socket.tcp
 
@@ -126,11 +126,11 @@ function close(self)
     return self.sock:close()
 end
 
+local bucket_new = bucket.new 
 
 function mt.bucket(self, name)
-    return rbucket.new(self, name)
+    return bucket_new(self, name)
 end
-
 
 local response_funcs = {}
 
