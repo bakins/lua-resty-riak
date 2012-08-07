@@ -4,13 +4,11 @@ _M._VERSION = '0.0.1'
 -- pb is pure Lua.  The interface is pretty easy, but we can switch it out if needed.
 local pb = require "pb"
 
--- maybe investigate http://code.google.com/p/lua-bitstring/?
-require "pack"
+local struct = require "struct"
 
 -- riak_kv.proto should be in the include path
 local riak = pb.require "riak"
 local riak_kv = pb.require "riak_kv"
-local bit = require "bit"
 
 local RpbGetReq = riak_kv.RpbGetReq
 local RpbGetResp = riak_kv.RpbGetResp()
@@ -27,8 +25,7 @@ local mt = {}
 local insert = table.insert
 local tcp = ngx.socket.tcp
 local mod = math.mod
-local pack = string.pack
-local unpack = string.unpack
+local spack, sunpack = struct.pack, struct.unpack
 
 local bucket = require("resty.riak.bucket")
 
@@ -163,8 +160,9 @@ function mt.handle_response(self)
     if not bytes then
         return nil, err
     end
-    
-    local _, length, msgcode = unpack(bytes, ">Ib")
+
+    local length, msgcode = sunpack(">IB", bytes)
+
     local msgtype = MESSAGE_CODES[tostring(msgcode)]
     
     if not msgtype then
@@ -196,8 +194,8 @@ local function send_request(self, msgcode, encoder, request)
     local msg = encoder(request)
     local bin = msg:Serialize()
     
-    local info = pack(">Ib", #bin + 1, msgcode)
-
+    local info = spack(">IB", #bin + 1, msgcode)
+    
     local bytes, err = self.sock:send({ info, bin })
     if not bytes then
         return nil, err
