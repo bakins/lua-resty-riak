@@ -122,7 +122,7 @@ function mt.get_reused_times(self)
     return self.sock:getreusedtimes()
 end
 
-function close(self)
+function mt.close(self)
     return self.sock:close()
 end
 
