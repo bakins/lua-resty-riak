@@ -9,7 +9,7 @@ description = {
    license = "BSD"
 }
 dependencies = {
-   "lpack"
+             --   "lpack"
 }
 build = {
    type = "builtin",
