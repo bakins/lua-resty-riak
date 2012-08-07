@@ -27,9 +27,9 @@ __DATA__
     location /t {
         content_by_lua '
             require "luarocks.loader"
-            local riak = require "nginx.riak"
-            local r = riak.new(nil, { timeout = 10 })
-            local client = r:connect()
+            local riak = require "resty.riak"
+            local r = riak.new()
+            local client = r:connect("127.0.0.1", 8087)
             local b = client:bucket("test")
             local o = b:new("1")
             o.value = "test"
