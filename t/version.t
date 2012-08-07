@@ -30,7 +30,7 @@ __DATA__
     location /t {
         content_by_lua '
 require "luarocks.loader"
-local riak = require "nginx.riak"
+local riak = require "resty.riak"
 ngx.say(riak._VERSION)
 ';
     }
