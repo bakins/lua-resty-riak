@@ -30,19 +30,22 @@ __DATA__
         content_by_lua '
             require "luarocks.loader"
             local riak = require "resty.riak"
-            local r = riak.new()
-            local client = r:connect("127.0.0.1", 8087)
-            local b = client:bucket("test")
-            local o = b:new("1")
-            o.value = "test"
-            o.content_type = "text/plain"
-            local rc, err = o:store()
+            local client = riak.new()
+            local ok, err = client:connect("127.0.0.1", 8087)
+            if not ok then
+                ngx.log(ngx.ERR, "connect failed: " .. err)
+            end
+            local bucket = client:bucket("test")
+            local object = bucket:new("1")
+            object.value = "test"
+            object.content_type = "text/plain"
+            local rc, err = object:store()
             ngx.say(rc)
-            local o, err = b:get("1")
-            if not o then
+            local object, err = bucket:get("1")
+            if not object then
                 ngx.say(err)
             else
-                ngx.say(o.value)
+                ngx.say(object.value)
             end
             client:close()
         ';
@@ -61,15 +64,18 @@ test
     location /t {
         content_by_lua '
             require "luarocks.loader"
-            local riak = require "nginx.riak"
-            local r = riak.new(nil, { timeout = 10 })
-            local client = r:connect()
-            local b = client:bucket("test")
-            local o, err = b:get("787")
-            if not o then
+            local riak = require "resty.riak"
+            local client = riak.new()
+            local ok, err = client:connect("127.0.0.1", 8087)
+            if not ok then
+                ngx.log(ngx.ERR, "connect failed: " .. err)
+            end
+            local bucket = client:bucket("test")
+            local object, err = bucket:get("something not there")
+            if not object then
                 ngx.say(err)
             else
-                ngx.say(o.value)
+                ngx.say(object.value)
             end
             client:close()
         ';
