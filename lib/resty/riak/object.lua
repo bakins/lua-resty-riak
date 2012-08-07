@@ -10,8 +10,7 @@ function _M.new(bucket, key)
         key = key,
         meta = {}
     }
-    setmetatable(o,  { __index = mt })
-    return o
+    return setmetatable(o,  { __index = mt })
 end
 
 function _M.get(bucket, key)
@@ -45,8 +44,7 @@ function _M.get(bucket, key)
         end
     end
     object.meta = meta
-    setmetatable(object,  { __index = mt })
-    return object
+    return setmetatable(object,  { __index = mt })
 end
 
 function mt.store(self)
