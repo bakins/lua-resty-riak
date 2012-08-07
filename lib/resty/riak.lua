@@ -96,7 +96,7 @@ local MESSAGE_CODES = {
     ["28"] = "SearchQueryResp"
 }
 
-function _M.new(self, options)
+function _M.new()
     local sock, err = tcp()
     if not sock then
         return nil, err
