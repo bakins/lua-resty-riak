@@ -1,24 +1,21 @@
 local _M = {}
 
-local robject = require("nginx.riak.object")
+local object = require("resty.riak.object")
 
 local mt = {}
 
 function _M.new(client, name)
-    local b = {
-        name = name,
-        client = client
-    }
-    setmetatable(b, { __index = mt })
-    return b
+    return setmetatable({ name = name, client = client }, { __index = mt })
 end
 
+local object_new = object.new
 function mt.new(self, key)
-    return robject.new(self, key)
+    return object_new(self, key)
 end
 
+local object_get = object.get
 function mt.get(self, key)
-    return robject.get(self, key)
+    return object_get(self, key)
 end
 
 function mt.get_or_new(self, key)
@@ -30,11 +27,7 @@ function mt.get_or_new(self, key)
 end
 
 function mt.delete(self, key)
-    local request = {
-        bucket = self.name,
-        key = key
-    }
-    return self.client:DelReq(request)
+    return self.client:DelReq( { bucket = self.name, key = key })
 end
 
 return _M
