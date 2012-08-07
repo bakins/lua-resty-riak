@@ -1,6 +1,6 @@
-# lua-nginx-riak #
+# lua-resty-riak #
 
-lua-nginx-riak - Lua riak protocol buffer client driver for the ngx_lua
+lua-resty-riak - Lua riak protocol buffer client driver for the ngx_lua
 based on the cosocket API.
 
 Originally based on the
@@ -23,19 +23,14 @@ This Lua library takes advantage of ngx_lua's cosocket API, which ensures
 
 Note that at least [ngx\_lua 0.5.0rc29](https://github.com/chaoslawful/lua-nginx-module/tags) or [ngx\_openresty 1.0.15.7](http://openresty.org/#Download) is required.
 
-This library does not follow the general interface that other nginx
-resty modules use.  The interface is simplified (in the author's
-opinion) and influenced by the ruby client.  It also uses the author's
-general Lua style.
-
 ## Synopsis ##
 
     lua_package_path "/path/to/lua-resty-riak/lib/?.lua;;";
     location /t {
         content_by_lua '
-            local riak = require "nginx.riak"
-            local r = riak.new(nil, { timeout = 10 })
-            local client = r:connect()
+            local riak = require resty.riak"
+            local r = riak.new()
+            local client = r:connect("127.0.0.1", 8087)
             local b = client:bucket("test")
             local o = b:new("1")
             o.value = "test"
@@ -57,40 +52,49 @@ general Lua style.
 ### Module Methods ###
 
 #### new ####
-syntax: `local r = riak.new(serves, options)`
+syntax: `local riak, err = riak.new()`
 
-Creates a riak config/client object. This object can be shared among
-requests and is suitable for calling in _init\_by\_lua_.
-Returns `nil` on error. 
+Creates a riak object. In case of failures, returns `nil` and a
+string describing the error.
 
-_servers_ should be in the form _{ {:host => host/ip, :port => :port }_ where port defaults
-to 8087.   If multiple servers are given, they will be used in a
-round-robin fashion. If _nil_, then _127.0.0.1:8087_ is used.
-
-Options should be a table with
-can contain these keys:
-
-* keepalive_timeout - timeout argument to
-  [setkeepalive](http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive)
-* keepalive\_pool\_size    - size argument to
-  [setkeepalive](http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive)
-* timeout - time argument to [settimeout](http://wiki.nginx.org/HttpLuaModule#tcpsock:settimeout)  
-* really_close - Call close rather than setkeepalive when calling
-close on the client.
-
-### Client Methods ###
+### Instance Methods ###
 
 #### connect ####
-syntax: `local client, err = r:connect()`
+`syntax: ok, err = riak:connect(host, port)`
 
-Actually connect to riak. 
+Attempts to connect to the remote host and port.
 
-Returns:
+Before actually resolving the host name and connecting to the remote backend, this method will always look up the connection pool for matched idle connections created by previous calls of this method.
 
-* client - riak client object or _nil_ on error. This client
-object can **not** be shared across multipe requests simultaneously, but
-can be stored in _ngx.ctx_
-* err - error message, if any
+#### set_timeout ####
+`syntax: riak:set_timeout(time)`
+
+Sets the timeout (in ms) protection for subsequent operations, including the `connect` method.
+
+#### set_keepalive ####
+`syntax: local ok, err = riak:set_keepalive(max_idle_timeout, pool_size)`
+
+Keeps the current riak connection alive and put it into the ngx_lua cosocket connection pool.
+
+You can specify the max idle timeout (in ms) when the connection is in the pool and the maximal size of the pool every nginx worker process.
+
+In case of success, returns `1`. In case of errors, returns `nil` with a string describing the error.
+
+#### get\_reused\_times ####
+`syntax: local times, err = riak:get_reused_times()`
+
+This method returns the (successfully) reused times for the current connection. In case of error, it returns `nil` and a string describing the error.
+
+If the current connection does not come from the built-in connection pool, then this method always returns `0`, that is, the connection has never been reused (yet). If the connection comes from the connection pool, then the return value is always non-zero. So this method can also be used to determine if the current connection comes from the pool.
+
+
+#### close ####
+`syntax: local ok, err = riak:close()`
+
+Closes the current riak connection and returns the status.
+
+In case of success, returns `1`. In case of errors, returns `nil` with a string describing the error.
+
 
 #### bucket ####
 syntax: `local bucket = client:bucket(name)`
@@ -99,31 +103,24 @@ Returns:
 
 * A riak bucket object
 
-Note: this uses _nginx.riak.bucket.new_
-
-#### close ####
-syntax: `client:close()`
-
-Close the client. It is no longer usable.  Pass in a _true_ value to
-actually call close on the underlying socket, the default is to use
-_setkeepalive_.
+Note: this uses `resty.bucket.new`
 
 ### Bucket Methods ###
 
 #### new ####
-syntax: `local bucket = nginx.riak.bucket.new(client, name)`
+syntax: `local bucket = resty.riak.bucket.new(riak, name)`
 
 Module Function.
 
-Create a new bucket object. client must be an _nginx.riak.client_
-object.  In pratice, _client:bucket(name)_ is preferred.
+Create a new bucket object. client must be a valid, open `resty.riak`
+object.  In pratice, `riak:bucket(name)` is preferred.
 
 #### new ####
 syntax: `local object = bucket:new(key)`
  
 Create a new riak value object .
 
-Note: this uses _nginx.riak.object.new_
+Note: this uses `resty.riak.object.new`
 
 #### get ####
 syntax: `local object, err = bucket:get(key)`
@@ -136,7 +133,7 @@ Returns:
 * err - error emssage if any. _"not found"_ means the key could not be
   found.
   
-#### get_or_new ####
+#### get\_or\_new ####
 syntax: `local object, err = bucket:get_or_new(key)`
 
 Convinience method.
@@ -157,10 +154,10 @@ Returns:
 ### Object Methods ####
 
 #### new ####
-syntax: `local object = nginx.riak.object.new(bucket, key)`
+syntax: `local object =resty.riak.object.new(bucket, key)`
 
 Create a new riak value object. This does **not** persist to the
-server(s) until _object:store() is called. Generally, _bucket:new(key)_
+server(s) until `object:store()` is called. Generally, `bucket:new(key)`
 is prefered.
 
 In addition to the methods listed here, an object also has these
@@ -177,12 +174,12 @@ contain nested tables and all keys and values should be simple
 strings.
 
 The fileds marked as required **must** be present when
-_object:store()_ is called to be successfully stored.
+`object:store()` is called to be successfully stored.
 
 #### get ####
-syntax: `local object, err = nginx.riak.object.get(bucket, key)`
+syntax: `local object, err = resty.riak.object.get(bucket, key)`
 
-Retrive an object. _bucket:get(key)_ is generally preferred.
+Retrive an object. `bucket:get(key)` is generally preferred.
 
 #### store ####
 syntax: `local rc, err = object:store()`
@@ -197,15 +194,14 @@ Returns:
 #### delete ####
 syntax: `local rc, err = object:delete()`
 
-Remove an object. see _bucket:delete(key)_ as this is just a wrapper
+Remove an object. see `bucket:delete(key)` as this is just a wrapper
 around it.
 
 ## Limitations ##
 
 * This library cannot be used in code contexts like *set_by_lua*, *log_by_lua*, and
 *header_filter_by_lua* where the ngx\_lua cosocket API is not available.
-* The `nginx.riak.client`, `nginx.riak.bucket`,  and
-`nginx.riak.object` object instances  cannot be stored in a Lua variable at the Lua module level,
+* The `resty.riak` object instances  cannot be stored in a Lua variable at the Lua module level,
 because it will then be shared by all the concurrent requests handled by the same nginx
  worker process (see [Data Sharing within an Nginx Worker](http://wiki.nginx.org/HttpLuaModule#Data\_Sharing\_within\_an\_Nginx_Worker) ) and
 result in bad race conditions when concurrent requests are trying to use the same instances.
