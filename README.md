@@ -60,7 +60,7 @@ string describing the error.
 ### Instance Methods ###
 
 #### connect ####
-`syntax: ok, err = riak:connect(host, port)`
+`syntax: local ok, err = riak:connect(host, port)`
 
 Attempts to connect to the remote host and port.
 
