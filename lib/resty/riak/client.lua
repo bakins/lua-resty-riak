@@ -6,7 +6,7 @@ local riak = pb.require "riak"
 local riak_kv = pb.require "riak_kv"
 
 local rbucket = require "resty.riak.bucket"
-ocal robject = require "resty.riak.object"
+local robject = require "resty.riak.object"
 
 local spack, sunpack = struct.pack, struct.unpack
 
@@ -63,6 +63,29 @@ function _M.new()
     }
     return setmetatable(self, mt)
 end
+
+-- Generic socket functions
+
+function mt.set_timeout(self, timeout)
+    return self.sock:settimeout(timeout)
+end
+
+function mt.connect(self, ...)
+    return self.sock:connect(...)
+end
+
+function mt.set_keepalive(self, ...)
+    return self.sock:setkeepalive(...)
+end
+
+function mt.get_reused_times(self)
+    return self.sock:getreusedtimes()
+end
+
+function mt.close(self)
+    return self.sock:close()
+end
+
 
 function _M.bucket(self, name)
     return rbucket.new(self, name)
