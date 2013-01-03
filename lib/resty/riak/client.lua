@@ -6,6 +6,7 @@ local riak = pb.require "riak"
 local riak_kv = pb.require "riak_kv"
 
 local rbucket = require "resty.riak.bucket"
+ocal robject = require "resty.riak.object"
 
 local spack, sunpack = struct.pack, struct.unpack
 
@@ -145,26 +146,8 @@ function _M.get_object(self, bucket, key)
             return nil, "not found"
         end
         response = GetResp:Parse(response)
-        local content = response.content[1]
-        local object = {
-            key = key,
-            bucket = bucket,
-            --vclock = response.vclock,
-            value = content.value,
-            charset = content.charset,
-            content_encoding =  content.content_encoding,
-            content_type = content.content_type,
-            last_mod = content.last_mod
-        }
         
-        local meta = {}
-        if content.usermeta then 
-            for _,m in ipairs(content.usermeta) do
-                meta[m.key] = m.value
-            end
-        end
-        object.meta = meta
-        return object
+        return robject.load(bucket, key, response)
     else
         return nil, "unhandled response type"
     end
