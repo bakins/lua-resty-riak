@@ -1,8 +1,8 @@
 local _M = {}
 
-local mt = {}
-
-local insert = table.insert
+local mt = { 
+    __index = _M 
+}
 
 function _M.new(bucket, key)
     local o = {
@@ -10,76 +10,23 @@ function _M.new(bucket, key)
         key = key,
         meta = {}
     }
-    return setmetatable(o,  { __index = mt })
+    return setmetatable(o,  mt)
 end
 
-function _M.get(bucket, key)
-    local request = {
-        bucket = bucket.name,
-        key = key
-    }
-    
-    local response, err = bucket.client:GetReq(request)
-    if not response then
-        return nil, err
-    end
-    -- we only support single gets currently
-    local content = response.content[1]
-    -- there is probably a more effecient way to do this    
-    local object = {
-        key = key,
-        bucket = bucket,
-        --vclock = response.vclock,
-        value = content.value,
-        charset = content.charset,
-        content_encoding =  content.content_encoding,
-        content_type = content.content_type,
-        last_mod = content.last_mod
-    }
-    
-    local meta = {}
-    if content.usermeta then 
-        for _,m in ipairs(content.usermeta) do
-            meta[m.key] = m.value
-        end
-    end
-    object.meta = meta
-    return setmetatable(object,  { __index = mt })
+function _M.store(self)
+    return self.bucket.client:store_object(self)
 end
 
-function mt.store(self)
-    if not self.content_type then
-        return nil, "content_type is required"
-    end
-    
-    if not self.key then
-        return nil, "only support named keys for now"
-    end
-    
-    local meta = {}
-    for k,v in pairs(self.meta) do
-        insert(meta, { key = k, value = v })
-    end
-    
-    local bucket = self.bucket
-
-    local request = {
-        bucket = bucket.name,
-        key = self.key,
-        --vclock = self.vclock,
-        content = {
-            value = self.value or "",
-            content_type = self.content_type,
-            charset = self.charset,
-            content_encoding = self.content_encoding, 
-            usermeta = meta
-        }
-    }
-    return bucket.client:PutReq(request)
+function _M.reload(object)
+    return self.bucket.client:reload_object(self)
 end
 
-function mt.delete(self)
-    return self.bucket:delete(self.key)
+function _M.delete(self)
+    local key = self.key
+    if not key then
+        return nil
+    end
+    return self.bucket:delete_object(key)
 end
 
 return _M

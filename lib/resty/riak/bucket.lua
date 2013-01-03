@@ -1,33 +1,41 @@
 local _M = {}
 
-local object = require("resty.riak.object")
+local robject = require "resty.riak.object"
 
-local mt = {}
+local mt = { 
+    __index = _M 
+}
 
 function _M.new(client, name)
-    return setmetatable({ name = name, client = client }, { __index = mt })
+    -- cheesy...
+    local self = {
+        name = name, 
+        client = client,
+        get = _M.get_object,
+        new = _M.new_object,
+        get_or_new = _M.get_or_new_object,
+        delete = _M.delete_object
+    }
+    return setmetatable(self, mt)
 end
 
-local object_new = object.new
-function mt.new(self, key)
-    return object_new(self, key)
+function _M.get_object(self, key)
+    return self.client.get_object(self, key)
 end
 
-local object_get = object.get
-function mt.get(self, key)
-    return object_get(self, key)
+function _M.new_object(self, key)
+    return robject.new(self, key)
 end
 
-function mt.get_or_new(self, key)
-    local o, err = self:get(key)
-    if not o and "not found" == err then
-        o, err = self:new(key)
+function _M.get_or_new_object(self, key)
+    local object = self.client.get_object(self, key)
+    if not object then
+        return robject.new(self, key)
     end
-    return o, err
 end
 
-function mt.delete(self, key)
-    return self.client:DelReq( { bucket = self.name, key = key })
+function _M.delete_object(self, key)
+    return self.client:delete_object(self, key)
 end
 
 return _M
