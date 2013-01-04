@@ -98,7 +98,7 @@ function mt.store_object(self, object)
         bucket = object.bucket.name,
         key = object.key,
         content = {
-            value = self.value or "",
+            value = object.value or "",
             content_type = object.content_type,
             charset = object.charset,
             content_encoding = object.content_encoding, 
@@ -150,27 +150,25 @@ end
 local GetReq = riak_kv.RpbGetReq
 local GetResp = riak_kv.RpbGetResp()
 function mt.get_object(self, bucket, key)
-    ngx.log(ngx.ERR, "get_object: " .. type(self))
     local sock = self.sock
     local request = {
         bucket = bucket.name,
         key = key
     }
     
-    ngx.log(ngx.ERR, "get_object: " .. type(request))
     -- 9 = GetReq
     local msgcode, response = send_request(sock, 9, GetReq, request)
     if not msgcode then
         return nil, response
     end
-    
+      
     -- 10 = GetResp
     if msgcode ==  10 then
         if not response then
             return nil, "not found"
         end
         response = GetResp:Parse(response)
-        
+
         return robject.load(bucket, key, response)
     else
         return nil, "unhandled response type"
