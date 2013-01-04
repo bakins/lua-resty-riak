@@ -10,9 +10,7 @@ local robject = require "resty.riak.object"
 
 local spack, sunpack = struct.pack, struct.unpack
 
-local mt = { 
-    __index = _M 
-}
+local mt = { }
 
 local ErrorResp = riak.RpbErrorResp()
 
@@ -60,7 +58,7 @@ function _M.new()
     local self = {
         sock = sock
     }
-    return setmetatable(self, mt)
+    return setmetatable(self, { __index = mt })
 end
 
 -- Generic socket functions
