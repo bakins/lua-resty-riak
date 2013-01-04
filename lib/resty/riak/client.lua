@@ -84,12 +84,12 @@ function mt.close(self)
 end
 
 
-function _M.bucket(self, name)
+function mt.bucket(self, name)
     return rbucket.new(self, name)
 end
 
 local PutReq = riak_kv.RpbPutReq
-function _M.store_object(self, object)
+function mt.store_object(self, object)
     local sock = self.sock
 
     local request = {
@@ -119,11 +119,11 @@ function _M.store_object(self, object)
     end
 end
 
-function _M.reload_object(self, object)
+function mt.reload_object(self, object)
 end
 
 local DelReq = riak_kv.RpbDelReq
-function _M.delete_object(self, bucket, key)
+function mt.delete_object(self, bucket, key)
     local sock = self.sock
     
     local request = { 
@@ -147,7 +147,7 @@ end
 
 local GetReq = riak_kv.RpbGetReq
 local GetResp = riak_kv.RpbGetResp()
-function _M.get_object(self, bucket, key)
+function mt.get_object(self, bucket, key)
     local sock = self.sock
     local request = {
         bucket = bucket.name,
