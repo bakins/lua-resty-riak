@@ -16,9 +16,9 @@ local ErrorResp = riak.RpbErrorResp()
 
 local function send_request(sock, msgcode, encoder, request)
     local msg = encoder(request)
-    local bin = msg:Serialize()
+    local bin, errmsg = msg:Serialize()
     if not bin then
-        return nil, "serialization failed"
+        return nil, "serialization failed: " .. errmsg
     end
     local info = spack(">IB", #bin + 1, msgcode)
     
@@ -162,7 +162,7 @@ function mt.get_object(self, bucket, key)
         return nil, response
     end
     
-    -- 10 = GetReq
+    -- 10 = GetResp
     if msgcode ==  10 then
         if not response then
             return nil, "not found"
