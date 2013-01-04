@@ -22,7 +22,7 @@ local function send_request(sock, msgcode, encoder, request)
     
     local info = spack(">IB", #bin + 1, msgcode)
     
-    local bytes, err = sock:send({ info, bin })
+    local bytes, err = sock:send(info .. bin)
     if not bytes then
         return nil, err
     end
@@ -32,7 +32,7 @@ local function send_request(sock, msgcode, encoder, request)
     end
     
     local length, msgcode = sunpack(">IB", bytes)
-
+    
     bytes = length - 1
     local response = nil
     if bytes > 0 then 
@@ -41,18 +41,17 @@ local function send_request(sock, msgcode, encoder, request)
             return nil, err
         end
     end
-
+    
     if msgcode == 0 then
         local errmsg = ErrorResp(response)
         if errmsg and 'table' == type(errmsg) then
             response = errmsg['errmsg']
         end
         return nil, response
-    else
-        
+    end
     return msgcode, response
 end
-
+    
 function _M.new()
     local sock, err = ngx.socket.tcp()
     if not sock then
