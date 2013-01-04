@@ -45,7 +45,11 @@ local function send_request(sock, msgcode, encoder, request)
     if msgcode == 0 then
         local errmsg = ErrorResp(response)
         if errmsg and 'table' == type(errmsg) then
-            response = errmsg['errmsg']
+            if errmsg['errmsg'] then
+                response = errmsg['errmsg']
+            else
+                response = 'error'
+            end
         end
         return nil, response
     end
