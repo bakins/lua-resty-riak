@@ -122,7 +122,7 @@ function _M.store_object(self, object)
     end
 end
 
-function _M.reload_object((self, object)
+function _M.reload_object(self, object)
 end
 
 local DelReq = riak_kv.RpbDelReq
