@@ -28,7 +28,6 @@ __DATA__
 --- config
     location /t {
         content_by_lua '
-            require "luarocks.loader"
             local riak = require "resty.riak"
             local client = riak.new()
             local ok, err = client:connect("127.0.0.1", 8087)
