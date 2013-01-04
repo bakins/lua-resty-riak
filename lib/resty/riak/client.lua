@@ -150,12 +150,14 @@ end
 local GetReq = riak_kv.RpbGetReq
 local GetResp = riak_kv.RpbGetResp()
 function mt.get_object(self, bucket, key)
+    ngx.log(ngx.ERR, "get_object: " .. type(self))
     local sock = self.sock
     local request = {
         bucket = bucket.name,
         key = key
     }
     
+    ngx.log(ngx.ERR, "get_object: " .. type(request))
     -- 9 = GetReq
     local msgcode, response = send_request(sock, 9, GetReq, request)
     if not msgcode then
