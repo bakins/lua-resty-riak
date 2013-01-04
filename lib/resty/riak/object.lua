@@ -38,7 +38,7 @@ function _M.load(bucket, key, response)
         end
     end
     object.meta = meta
-    return setmetatable(object,  mt)
+    return setmetatable(object, { __index = mt })
 end
 
 function mt.store(self)
