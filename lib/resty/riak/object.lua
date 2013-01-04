@@ -1,8 +1,6 @@
 local _M = {}
 
-local mt = { 
-    __index = _M 
-}
+local mt = { }
 
 function _M.new(bucket, key)
     local o = {
@@ -10,7 +8,7 @@ function _M.new(bucket, key)
         key = key,
         meta = {}
     }
-    return setmetatable(o,  mt)
+    return setmetatable(o,  { __index = mt })
 end
 
 -- horrible name - load from a "raw" riak response
@@ -43,15 +41,15 @@ function _M.load(bucket, key, response)
     return setmetatable(object,  mt)
 end
 
-function _M.store(self)
+function mt.store(self)
     return self.bucket.client:store_object(self)
 end
 
-function _M.reload(object)
+function mt.reload(object)
     return self.bucket.client:reload_object(self)
 end
 
-function _M.delete(self)
+function mt.delete(self)
     local key = self.key
     if not key then
         return nil
