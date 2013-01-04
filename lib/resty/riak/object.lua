@@ -15,8 +15,13 @@ end
 
 -- horrible name - load from a "raw" riak response
 function _M.load(bucket, key, response)
-    local object = robject.new(bucket, key)
-    local content = response.content[1]
+    local content = response.content
+    if "table" == type(content) then
+        content = content[1]
+    else
+        return nil, "bad content"
+    end
+
     local object = {
         key = key,
         bucket = bucket,
@@ -27,7 +32,7 @@ function _M.load(bucket, key, response)
         content_type = content.content_type,
         last_mod = content.last_mod
     }
-    
+              
     local meta = {}
     if content.usermeta then 
         for _,m in ipairs(content.usermeta) do
@@ -35,7 +40,7 @@ function _M.load(bucket, key, response)
         end
     end
     object.meta = meta
-    return setmetatable(o,  mt)
+    return setmetatable(object,  mt)
 end
 
 function _M.store(self)
