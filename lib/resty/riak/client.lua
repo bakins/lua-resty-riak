@@ -17,7 +17,9 @@ local ErrorResp = riak.RpbErrorResp()
 local function send_request(sock, msgcode, encoder, request)
     local msg = encoder(request)
     local bin = msg:Serialize()
-    
+    if not bin then
+        return nil, "serialization failed"
+    end
     local info = spack(">IB", #bin + 1, msgcode)
     
     local bytes, err = sock:send(info .. bin)
