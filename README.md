@@ -27,7 +27,8 @@ Depends on the following Lua modules:
 
 * lua-pb - https://github.com/Neopallium/lua-pb
 * struct - http://www.inf.puc-rio.br/~roberto/struct/
- 
+* lpack - http://www.tecgraf.puc-rio.br/~lhf/ftp/lua/#lpack 
+
 ## Synopsis ##
 
     lua_package_path "/path/to/lua-resty-riak/lib/?.lua;;";
