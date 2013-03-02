@@ -10,8 +10,6 @@ local robject = require "resty.riak.object"
 
 local spack, sunpack = struct.pack, struct.unpack
 
-local mt = { }
-
 local ErrorResp = riak.RpbErrorResp()
 
 local function send_request(sock, msgcode, encoder, request)
@@ -64,42 +62,44 @@ function _M.new()
     local self = {
         sock = sock
     }
-    return setmetatable(self, { __index = mt })
+    return setmetatable(self, { __index = _M })
 end
 
 -- Generic socket functions
 
-function mt.set_timeout(self, timeout)
+function _M.set_timeout(self, timeout)
     return self.sock:settimeout(timeout)
 end
 
-function mt.connect(self, ...)
+function _M.connect(self, ...)
     return self.sock:connect(...)
 end
 
-function mt.set_keepalive(self, ...)
+function _M.set_keepalive(self, ...)
     return self.sock:setkeepalive(...)
 end
 
-function mt.get_reused_times(self)
+function _M.get_reused_times(self)
     return self.sock:getreusedtimes()
 end
 
-function mt.close(self)
+function _M.close(self)
     return self.sock:close()
 end
 
-
-function mt.bucket(self, name)
-    return rbucket.new(self, name)
+-- covenience wrapper. A bucket in this module
+-- is really just a wrapper
+local rbucket_new = rbucket.new
+function _M.bucket(self, name)
+    return rbucket_new(self, name)
 end
 
 local PutReq = riak_kv.RpbPutReq
-function mt.store_object(self, object)
+function _M.store_object(self, bucket, object)
     local sock = self.sock
 
     local request = {
-        bucket = object.bucket.name,
+        bucket = bucket,
         key = object.key,
         content = {
             value = object.value or "",
@@ -125,15 +125,12 @@ function mt.store_object(self, object)
     end
 end
 
-function mt.reload_object(self, object)
-end
-
 local DelReq = riak_kv.RpbDelReq
-function mt.delete_object(self, bucket, key)
+function _M.delete_object(self, bucket, key)
     local sock = self.sock
     
     local request = { 
-        bucket = bucket.name, 
+        bucket = bucket, 
         key = key 
     }
     
@@ -153,10 +150,10 @@ end
 
 local GetReq = riak_kv.RpbGetReq
 local GetResp = riak_kv.RpbGetResp()
-function mt.get_object(self, bucket, key)
+function _M.get_object(self, bucket, key)
     local sock = self.sock
     local request = {
-        bucket = bucket.name,
+        bucket = bucket,
         key = key
     }
     
