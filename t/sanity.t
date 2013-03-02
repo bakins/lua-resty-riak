@@ -40,6 +40,9 @@ __DATA__
             object.content_type = "text/plain"
             local rc, err = object:store()
             ngx.say(rc)
+            if not rc then
+                ngx.say(err)
+            end  
             local object, err = bucket:get("1")
             if not object then
                 ngx.say(err)
