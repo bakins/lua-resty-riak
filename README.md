@@ -25,6 +25,11 @@ This Lua library takes advantage of ngx_lua's cosocket API, which ensures
 
 Note that at least [ngx\_lua 0.5.0rc29](https://github.com/chaoslawful/lua-nginx-module/tags) or [ngx\_openresty 1.0.15.7](http://openresty.org/#Download) is required.
 
+Depends on the following Lua modules:
+
+* lua-pb - https://github.com/Neopallium/lua-pb
+* struct - http://www.inf.puc-rio.br/~roberto/struct/
+ 
 ## Synopsis ##
 
     lua_package_path "/path/to/lua-resty-riak/lib/?.lua;;";
