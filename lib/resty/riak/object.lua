@@ -1,17 +1,21 @@
 local _M = {}
 
+local riak_client = require "resty.riak.client"
+
 local mt = { }
 
 function _M.new(bucket, key)
     local o = {
         bucket = bucket,
+	client = bucket.client,
         key = key,
         meta = {}
     }
     return setmetatable(o,  { __index = mt })
 end
 
--- horrible name - load from a "raw" riak response
+-- horrible name - load from a "raw" riak response.
+-- general do not call youself...
 function _M.load(bucket, key, response)
     local content = response.content
     if "table" == type(content) then
@@ -41,20 +45,19 @@ function _M.load(bucket, key, response)
     return setmetatable(object, { __index = mt })
 end
 
+local riak_client_store_object = riak_client.store_object
 function mt.store(self)
-    return self.bucket.client:store_object(self)
+    return riak_client_store_object(self.client, self.bucket.name, self)
 end
 
-function mt.reload(object)
-    return self.bucket.client:reload_object(self)
-end
+local riak_client_delete_object = riak_client.delete_object
 
 function mt.delete(self)
     local key = self.key
     if not key then
-        return nil
+        return nil, "no key"
     end
-    return self.bucket:delete_object(key)
+    return riak_client_delete_object(self.client, self.bucket.name, key)
 end
 
 return _M
