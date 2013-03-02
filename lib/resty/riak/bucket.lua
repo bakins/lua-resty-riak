@@ -1,33 +1,51 @@
 local _M = {}
 
-local object = require("resty.riak.object")
+local riak_object = require "resty.riak.object"
+local riak_client = require "resty.riak.client"
 
-local mt = {}
+local riak_object_new = riak_object.new
+local function new(self, key)
+    return riak_object_new(self, key)
+end
 
 function _M.new(client, name)
-    return setmetatable({ name = name, client = client }, { __index = mt })
+    local self = {
+        name = name, 
+        client = client, 
+	new = new
+    }
+    return setmetatable(self, { __index = _M })
 end
 
-local object_new = object.new
-function mt.new(self, key)
-    return object_new(self, key)
-end
+local riak_client_get_object = riak_client.get_object
+local riak_object_load = riak_object.load
 
-local object_get = object.get
-function mt.get(self, key)
-    return object_get(self, key)
-end
-
-function mt.get_or_new(self, key)
-    local o, err = self:get(key)
-    if not o and "not found" == err then
-        o, err = self:new(key)
+function _M.get(self, key)
+    local object, err = riak_client_get_object(self.client, self.name, key)
+    if object then
+	return riak_object_load(self, key, object)
+    else
+	return nil, err
     end
-    return o, err
 end
 
-function mt.delete(self, key)
-    return self.client:DelReq( { bucket = self.name, key = key })
+function _M.get_or_new(self, key)
+    local object, err = riak_client_get_object(self.client, self.name, key)
+    if not object then
+	if "not found" == err then
+	    return riak_object_new(self, key)
+	else
+	    return nil, err
+	end
+    else
+	return riak_object_load(object)
+    end
+end
+
+local riak_client_delete_object = riak_client.delete_object
+
+function _M.delete(self, key)
+    return riak_client_delete_object(self.client, self.name, key)
 end
 
 return _M
