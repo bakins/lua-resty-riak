@@ -5,9 +5,6 @@ local struct = require "struct"
 local riak = pb.require "riak"
 local riak_kv = pb.require "riak_kv"
 
-local rbucket = require "resty.riak.bucket"
-local robject = require "resty.riak.object"
-
 local spack, sunpack = struct.pack, struct.unpack
 
 local ErrorResp = riak.RpbErrorResp()
@@ -87,13 +84,6 @@ function _M.close(self)
     return self.sock:close()
 end
 
--- covenience wrapper. A bucket in this module
--- is really just a wrapper
-local rbucket_new = rbucket.new
-function _M.bucket(self, name)
-    return rbucket_new(self, name)
-end
-
 local PutReq = riak_kv.RpbPutReq
 function _M.store_object(self, bucket, object)
     local sock = self.sock
@@ -109,7 +99,7 @@ function _M.store_object(self, bucket, object)
             usermeta = object.meta
         }
     }
-
+    
     -- 11 = PutReq
     local msgcode, response = send_request(sock, 11, PutReq, request)
     if not msgcode then
@@ -168,9 +158,7 @@ function _M.get_object(self, bucket, key)
         if not response then
             return nil, "not found"
         end
-        response = GetResp:Parse(response)
-
-        return robject.load(bucket, key, response)
+	return GetResp:Parse(response)
     else
         return nil, "unhandled response type"
     end
