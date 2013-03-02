@@ -14,8 +14,6 @@ Influence by [riak-client-ruby](https://github.com/basho/riak-ruby-client/)
 This library is currently _alpha_ quality. It passes all its unit
 tests. A few billion requests per day are handled by it however.
 
-Users are encouraged to test the code in the `refactor` branch. It is a complete rewrite. The internal code has been greatly simplified while providing the same functionality. It, however, has not received the same amount of testing.
-
 ## Description ##
 
 This Lua library is a riak protocol buffer client driver for the [ngx_lua nginx module](http://wiki.nginx.org/HttpLuaModule)
