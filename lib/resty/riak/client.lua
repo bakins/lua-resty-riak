@@ -155,7 +155,7 @@ function _M.get_object(self, bucket, key)
       
     -- 10 = GetResp
     if msgcode ==  10 then
-        if not response then
+        if not response or response.deleted then
             return nil, "not found"
         end
 	return GetResp:Parse(response)
