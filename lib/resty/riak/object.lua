@@ -1,6 +1,7 @@
 local require = require
 local setmetatable = setmetatable
 local error = error
+local type = type
 
 local _M = {}
 setfenv(1, _M)
