@@ -1,4 +1,9 @@
+local require = require
+local setmetatable = setmetatable
+local error = error
+
 local _M = {}
+setfenv(1, _M)
 
 local riak_client = require "resty.riak.client"
 
@@ -59,5 +64,14 @@ function mt.delete(self)
     end
     return riak_client_delete_object(self.client, self.bucket.name, key)
 end
+
+local class_mt = {
+    -- to prevent use of casual module global variables
+    __newindex = function (table, key, val)
+        error('attempt to write to undeclared variable "' .. key .. '"')
+    end
+}
+
+setmetatable(_M, class_mt)
 
 return _M
