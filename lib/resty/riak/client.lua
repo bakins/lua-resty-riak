@@ -21,7 +21,7 @@ local function send_request(sock, msgcode, encoder, request)
     if not bytes then
         return nil, err
     end
-    bytes, err, partial = sock:receive(5)
+    local bytes, err, partial = sock:receive(5)
     if not bytes then
         return nil, err
     end
