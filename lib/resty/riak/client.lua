@@ -3,8 +3,7 @@ local setmetatable = setmetatable
 local error = error
 local ngx = ngx
 
-local _M = {}
-setfenv(1, _M)
+local _M = require("resty.riak.helpers").module()
 
 local pb = require "pb"
 local struct = require "struct"
@@ -169,14 +168,5 @@ function _M.get_object(self, bucket, key)
         return nil, "unhandled response type"
     end
 end
-
-local class_mt = {
-    -- to prevent use of casual module global variables
-    __newindex = function (table, key, val)
-        error('attempt to write to undeclared variable "' .. key .. '"')
-    end
-}
-
-setmetatable(_M, class_mt)
 
 return _M

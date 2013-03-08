@@ -1,7 +1,8 @@
-local require, setmetatable, error = require, setmetatable, error
+local require = require
+local setmetatable = setmetatable
+local error = error
 
-local _M = {}
-setfenv(1, _M)
+local _M = require("resty.riak.helpers").module()
 
 _M._VERSION = '0.2.0'
 
@@ -16,15 +17,5 @@ function _M.new()
     self.bucket = riak_bucket_new
     return self
 end
-
-
-local class_mt = {
-    -- to prevent use of casual module global variables
-    __newindex = function (table, key, val)
-        error('attempt to write to undeclared variable "' .. key .. '"')
-    end
-}
-
-setmetatable(_M, class_mt)
 
 return _M

@@ -2,8 +2,7 @@ local require = require
 local setmetatable = setmetatable
 local error = error
 
-local _M = {}
-setfenv(1, _M)
+local _M = require("resty.riak.helpers").module()
 
 local riak_object = require "resty.riak.object"
 local riak_client = require "resty.riak.client"
@@ -52,14 +51,5 @@ local riak_client_delete_object = riak_client.delete_object
 function _M.delete(self, key)
     return riak_client_delete_object(self.client, self.name, key)
 end
-
-local class_mt = {
-    -- to prevent use of casual module global variables
-    __newindex = function (table, key, val)
-        error('attempt to write to undeclared variable "' .. key .. '"')
-    end
-}
-
-setmetatable(_M, class_mt)
 
 return _M
