@@ -1,4 +1,10 @@
+local require = require
+local setmetatable = setmetatable
+local error = error
+local ngx = ngx
+
 local _M = {}
+setfenv(1, _M)
 
 local pb = require "pb"
 local struct = require "struct"
