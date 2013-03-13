@@ -173,17 +173,36 @@ function _M.get_object(self, bucket, key)
 end
 
 function _M.ping(self)
-    -- 2 = PingResp
-    local msgcode, response = send_request(self.sock, 2)
+    -- 1 = PingReq
+    local msgcode, response = send_request(self.sock, 1)
     if not msgcode then
         return nil, response
     end
     
-    -- 3 - PingResp
-    if msgcode == 3 then
+    -- 2 - PingResp
+    if msgcode == 2 then
 	return true
     else
 	return nil, msgcode
+    end
+end
+
+local GetClientIdResp = riak_kv.RpbGetClientIdResp()
+function _M.get_client_id(self)
+    -- 3 = GetClientIdReq
+    local msgcode, response = send_request(self.sock, 3)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 4 = GetClientIdResp
+    if msgcode ==  10 then
+        if not response or response.deleted then
+            return nil, "not found"
+        end
+	return GetClientIdResp:Parse(response)
+    else
+        return nil, "unhandled response type"
     end
 end
 
