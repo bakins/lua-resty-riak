@@ -237,4 +237,25 @@ function _M.get_server_info(self)
     end
 end
 
+local GetBucketReq = riak_kv.RpbGetBucketReq
+local GetBucketResp = riak_kv.RpbGetBucketResp()
+function _M.get_bucket_props(self, bucket)
+    local request = {
+        bucket = bucket
+    }
+    
+    -- 19 = GetBucketReq
+    local msgcode, response = send_request(self.sock, 19, GetBucketReq, request)
+    if not msgcode then
+        return nil, response
+    end
+      
+    -- 20 = GetBucketResp
+    if msgcode == 20 then
+	return GetBucketResp:Parse(response).props, nil
+    else
+        return nil, "unhandled response type"
+    end
+end
+
 return _M
