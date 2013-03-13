@@ -2,6 +2,7 @@ local require = require
 local setmetatable = setmetatable
 local error = error
 local ngx = ngx
+local type = type
 
 local _M = require("resty.riak.helpers").module()
 
@@ -46,7 +47,7 @@ local function send_request(sock, msgcode, encoder, request)
     end
     
     if msgcode == 0 then
-        local errmsg = ErrorResp(response)
+        local errmsg = ErrorResp:Parse(response)
         if errmsg and 'table' == type(errmsg) then
             if errmsg['errmsg'] then
                 response = errmsg['errmsg']
