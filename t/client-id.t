@@ -34,7 +34,6 @@ __DATA__
             end
 	    local id, err = client:get_client_id()
 	    ngx.say(type(id))
-	    ngx.say(type(id.client_id))
             ngx.say(err)
             client:close()
         ';
@@ -42,7 +41,6 @@ __DATA__
 --- request
 GET /t
 --- response_body
-table
 string
 nil
 --- no_error_log
