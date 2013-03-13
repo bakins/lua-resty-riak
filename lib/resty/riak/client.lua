@@ -204,7 +204,7 @@ function _M.get_client_id(self)
     end
 end
 
-local GetServerInfoResp = riak.RpbGetServerInfoResp
+local GetServerInfoResp = riak.RpbGetServerInfoResp()
 function _M.get_server_info(self)
     -- 7 = GetClientIdReq
     local msgcode, response = send_request(self.sock, 7)
@@ -214,7 +214,7 @@ function _M.get_server_info(self)
     
     -- 8 = GetServerInfoResp
     if msgcode ==  8 then
-	return GetServerInfoResp:Parse(response)
+	return GetServerInfoResp:Parse(response), nil
     else
         return nil, "unhandled response type"
     end
