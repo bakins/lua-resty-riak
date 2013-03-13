@@ -174,7 +174,7 @@ end
 
 function _M.ping(self)
     -- 2 = PingResp
-    local msgcode, response = send_request(sock, 2)
+    local msgcode, response = send_request(self.sock, 2)
     if not msgcode then
         return nil, response
     end
