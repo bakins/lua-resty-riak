@@ -21,7 +21,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: delete
+=== TEST 1: ping
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
