@@ -197,10 +197,23 @@ function _M.get_client_id(self)
     
     -- 4 = GetClientIdResp
     if msgcode ==  10 then
-        if not response or response.deleted then
-            return nil, "not found"
-        end
 	return GetClientIdResp:Parse(response)
+    else
+        return nil, "unhandled response type"
+    end
+end
+
+local GetServerInfoResp = riak.RpbGetServerInfoResp
+function _M.get_server_info(self)
+    -- 7 = GetClientIdReq
+    local msgcode, response = send_request(self.sock, 7)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 8 = GetServerInfoResp
+    if msgcode ==  8 then
+	return GetServerInfoResp:Parse(response)
     else
         return nil, "unhandled response type"
     end
