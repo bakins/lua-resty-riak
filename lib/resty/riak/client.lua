@@ -15,15 +15,27 @@ local spack, sunpack = struct.pack, struct.unpack
 
 local ErrorResp = riak.RpbErrorResp()
 
-local function send_request(sock, msgcode, encoder, request)
-    local bin = ""
+local function encode_message(encoder, request)
     if request then
 	local msg = encoder(request)
 	local bin, errmsg = msg:Serialize()
 	if not bin then
 	    return nil, "serialization failed: " .. errmsg
+	else
+	    return bin, nil
 	end
+    else
+	return "", nil
     end
+end
+
+local function send_request(sock, msgcode, encoder, request)
+    local bin, err = encode_message(encoder, request)
+    
+    if not bin then
+	return nil, err
+    end
+    
     local info = spack(">IB", #bin + 1, msgcode)
     
     local bytes, err = sock:send(info .. bin)
