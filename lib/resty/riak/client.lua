@@ -29,6 +29,18 @@ local function encode_message(encoder, request)
     end
 end
 
+local function parse_error(response)
+    local errmsg = ErrorResp:Parse(response)
+    if errmsg and 'table' == type(errmsg) then
+	if errmsg['errmsg'] then
+	    response = errmsg['errmsg']
+	else
+	    response = 'error'
+	end
+    end
+    return nil, response
+end
+	
 local function send_request(sock, msgcode, encoder, request)
     local bin, err = encode_message(encoder, request)
     
@@ -59,17 +71,10 @@ local function send_request(sock, msgcode, encoder, request)
     end
     
     if msgcode == 0 then
-        local errmsg = ErrorResp:Parse(response)
-        if errmsg and 'table' == type(errmsg) then
-            if errmsg['errmsg'] then
-                response = errmsg['errmsg']
-            else
-                response = 'error'
-            end
-        end
-        return nil, response
+	return parse_error(response)
+    else
+	return msgcode, response
     end
-    return msgcode, response
 end
     
 function _M.new()
