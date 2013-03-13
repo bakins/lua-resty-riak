@@ -197,8 +197,8 @@ function _M.get_client_id(self)
     end
     
     -- 4 = GetClientIdResp
-    if msgcode ==  10 then
-	return GetClientIdResp:Parse(response)
+    if msgcode == 4 then
+	return GetClientIdResp:Parse(response), nil
     else
         return nil, "unhandled response type"
     end
