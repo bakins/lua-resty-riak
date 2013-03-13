@@ -35,6 +35,7 @@ __DATA__
 	    local info, err = client:get_server_info()
 	    ngx.say(type(info))
 	    ngx.say(type(info.node))
+	    ngx.say(type(info.server_version))
             ngx.say(err)
             client:close()
         ';
@@ -43,6 +44,7 @@ __DATA__
 GET /t
 --- response_body
 table
+string
 string
 nil
 --- no_error_log
