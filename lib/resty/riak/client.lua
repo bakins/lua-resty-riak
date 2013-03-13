@@ -15,10 +15,13 @@ local spack, sunpack = struct.pack, struct.unpack
 local ErrorResp = riak.RpbErrorResp()
 
 local function send_request(sock, msgcode, encoder, request)
-    local msg = encoder(request)
-    local bin, errmsg = msg:Serialize()
-    if not bin then
-        return nil, "serialization failed: " .. errmsg
+    local bin = ""
+    if request then
+	local msg = encoder(request)
+	local bin, errmsg = msg:Serialize()
+	if not bin then
+	    return nil, "serialization failed: " .. errmsg
+	end
     end
     local info = spack(">IB", #bin + 1, msgcode)
     
@@ -166,6 +169,21 @@ function _M.get_object(self, bucket, key)
 	return GetResp:Parse(response)
     else
         return nil, "unhandled response type"
+    end
+end
+
+function _M.ping(self)
+    -- 2 = PingResp
+    local msgcode, response = send_request(sock, 2)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 3 - PingResp
+    if msgcode == 3 then
+	return true
+    else
+	return nil, msgcode
     end
 end
 
