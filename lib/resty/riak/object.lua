@@ -1,4 +1,9 @@
-local _M = {}
+local require = require
+local setmetatable = setmetatable
+local error = error
+local type = type
+
+local _M = require("resty.riak.helpers").module()
 
 local riak_client = require "resty.riak.client"
 

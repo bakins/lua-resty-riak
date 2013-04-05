@@ -1,4 +1,10 @@
-local _M = {}
+local require = require
+local setmetatable = setmetatable
+local error = error
+local ngx = ngx
+local type = type
+
+local _M = require("resty.riak.helpers").module()
 
 local pb = require "pb"
 local struct = require "struct"
@@ -9,19 +15,46 @@ local spack, sunpack = struct.pack, struct.unpack
 
 local ErrorResp = riak.RpbErrorResp()
 
-local function send_request(sock, msgcode, encoder, request)
-    local msg = encoder(request)
-    local bin, errmsg = msg:Serialize()
-    if not bin then
-        return nil, "serialization failed: " .. errmsg
+local function encode_message(encoder, request)
+    if request then
+	local msg = encoder(request)
+	local bin, errmsg = msg:Serialize()
+	if not bin then
+	    return nil, "serialization failed: " .. errmsg
+	else
+	    return bin, nil
+	end
+    else
+	return "", nil
     end
+end
+
+local function parse_error(response)
+    local errmsg = ErrorResp:Parse(response)
+    if errmsg and 'table' == type(errmsg) then
+	if errmsg['errmsg'] then
+	    response = errmsg['errmsg']
+	else
+	    response = 'error'
+	end
+    end
+    return nil, response
+end
+	
+local function send_request(sock, msgcode, encoder, request)
+    local bin, err = encode_message(encoder, request)
+    
+    if not bin then
+	return nil, err
+    end
+    
     local info = spack(">IB", #bin + 1, msgcode)
     
     local bytes, err = sock:send(info .. bin)
     if not bytes then
         return nil, err
     end
-    bytes, err, partial = sock:receive(5)
+    local bytes, err, partial = sock:receive(5)
     if not bytes then
         return nil, err
     end
@@ -38,17 +71,10 @@ local function send_request(sock, msgcode, encoder, request)
     end
     
     if msgcode == 0 then
-        local errmsg = ErrorResp(response)
-        if errmsg and 'table' == type(errmsg) then
-            if errmsg['errmsg'] then
-                response = errmsg['errmsg']
-            else
-                response = 'error'
-            end
-        end
-        return nil, response
+	return parse_error(response)
+    else
+	return msgcode, response
     end
-    return msgcode, response
 end
     
 function _M.new()
@@ -159,6 +185,74 @@ function _M.get_object(self, bucket, key)
             return nil, "not found"
         end
 	return GetResp:Parse(response)
+    else
+        return nil, "unhandled response type"
+    end
+end
+
+function _M.ping(self)
+    -- 1 = PingReq
+    local msgcode, response = send_request(self.sock, 1)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 2 - PingResp
+    if msgcode == 2 then
+	return true
+    else
+	return nil, msgcode
+    end
+end
+
+local GetClientIdResp = riak_kv.RpbGetClientIdResp()
+function _M.get_client_id(self)
+    -- 3 = GetClientIdReq
+    local msgcode, response = send_request(self.sock, 3)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 4 = GetClientIdResp
+    if msgcode == 4 then
+	return GetClientIdResp:Parse(response).client_id, nil
+    else
+        return nil, "unhandled response type"
+    end
+end
+
+local GetServerInfoResp = riak.RpbGetServerInfoResp()
+function _M.get_server_info(self)
+    -- 7 = GetClientIdReq
+    local msgcode, response = send_request(self.sock, 7)
+    if not msgcode then
+        return nil, response
+    end
+    
+    -- 8 = GetServerInfoResp
+    if msgcode ==  8 then
+	return GetServerInfoResp:Parse(response), nil
+    else
+        return nil, "unhandled response type"
+    end
+end
+
+local GetBucketReq = riak_kv.RpbGetBucketReq
+local GetBucketResp = riak_kv.RpbGetBucketResp()
+function _M.get_bucket_props(self, bucket)
+    local request = {
+        bucket = bucket
+    }
+    
+    -- 19 = GetBucketReq
+    local msgcode, response = send_request(self.sock, 19, GetBucketReq, request)
+    if not msgcode then
+        return nil, response
+    end
+      
+    -- 20 = GetBucketResp
+    if msgcode == 20 then
+	return GetBucketResp:Parse(response).props, nil
     else
         return nil, "unhandled response type"
     end
