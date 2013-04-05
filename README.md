@@ -14,8 +14,6 @@ Influence by [riak-client-ruby](https://github.com/basho/riak-ruby-client/)
 This library is currently _alpha_ quality. It passes all its unit
 tests. A few billion requests per day are handled by it however.
 
-Users are encouraged to test the code in the `refactor` branch. It is a complete rewrite. The internal code has been greatly simplified while providing the same functionality. It, however, has not received the same amount of testing.
-
 ## Description ##
 
 This Lua library is a riak protocol buffer client driver for the [ngx_lua nginx module](http://wiki.nginx.org/HttpLuaModule)
@@ -61,18 +59,26 @@ Depends on the following Lua modules:
 
 ## Methods ##
 
-### Module Methods ###
+There are two ways to use the client: the "raw" interface and the "object" interface.  
+
+### Raw Interface ###
+
+  
+`require "resty.riak.client"`
+
+**Note:** All of the raw interface functions can be called using
+either syntax: `riak:connect(host, port)` and
+`riak.client.connect(riak, host,port)` are equivalent, assuming riak
+was created using `riak.client.new()`
 
 #### new ####
-syntax: `local riak, err = riak.new()`
+syntax: `local riak, err = client.new()`
 
 Creates a riak object. In case of failures, returns `nil` and a
 string describing the error.
 
-### Instance Methods ###
-
 #### connect ####
-`syntax: local ok, err = riak:connect(host, port)`
+`syntax: local ok, err = riak:connect(host, port)` 
 
 Attempts to connect to the remote host and port.
 
@@ -107,9 +113,65 @@ Closes the current riak connection and returns the status.
 
 In case of success, returns `1`. In case of errors, returns `nil` with a string describing the error.
 
+#### store_object ####
+`syntax: local ok, err = riak:store_object(bucket, object)`
 
+Store a "raw" riak object. The definition of a riak object is defined
+in the riak PBC.  An example usage:
+
+    local object = { key = "1", value = "test", content_type = "text/plain" } 
+    local rc, err = client:store_object("bucket-name", object)
+
+Bucket is the name of the bucket as a string.
+
+In case of success, returns `true`. In case of errors, returns `nil` with a string describing the error.
+
+#### delete_object####
+`syntax: local ok, err = riak:delete_object(bucket, key)`
+
+Delete an object.
+
+Bucket is the name of the bucket as a string. Key is s string.
+
+In case of success, returns `true`. In case of errors, returns `nil` with a string describing the error.
+
+**Note:** If an object does not exist and there is no other error
+  (network, time out, etc) then this will still return true.
+  
+#### get_object####
+`syntax: local ok, err = riak:get_object(bucket, key)`
+
+Retrieve an object. The definition of a riak object is defined
+in the riak PBC. 
+
+Bucket is the name of the bucket as a string. Key is s string.
+
+In case of success, returns `true` and a raw riak object. In case of
+errors, returns `nil` with a string describing the error. If the
+object does not exist, then the error string will be "not found."
+
+### Object Interface ###
+This interface provides a more "object oriented" interface. 
+
+### Methods ###
+  
+`require "resty.riak"`
+  
+#### new ####
+syntax: `local riak, err = riak.new()`
+
+Creates a riak object. In case of failures, returns `nil` and a
+string describing the error.
+  
+Notice that the "raw" interface uses `riak.client.new()` and the
+"object" interface uses `riak.new()`
+
+**Note:** An object created with `riak.new()` supports all the
+  functions of the "raw" interface as well. Those function definitions
+  will not be repeated here.
+  
 #### bucket ####
-syntax: `local bucket = client:bucket(name)`
+syntax: `local bucket = riak:bucket(name)`
 
 Returns:
 
