@@ -29,7 +29,6 @@ __DATA__
 --- config
     location /t {
         content_by_lua '
-require "luarocks.loader"
 local riak = require "resty.riak"
 ngx.say(riak._VERSION)
 ';
