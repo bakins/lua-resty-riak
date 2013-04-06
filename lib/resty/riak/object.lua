@@ -1,31 +1,34 @@
-local _M = {}
+local require = require
+local setmetatable = setmetatable
+local error = error
+local type = type
 
-local mt = {}
+local _M = require("resty.riak.helpers").module()
 
-local insert = table.insert
+local riak_client = require "resty.riak.client"
+
+local mt = { }
 
 function _M.new(bucket, key)
     local o = {
         bucket = bucket,
+	client = bucket.client,
         key = key,
         meta = {}
     }
     return setmetatable(o,  { __index = mt })
 end
 
-function _M.get(bucket, key)
-    local request = {
-        bucket = bucket.name,
-        key = key
-    }
-    
-    local response, err = bucket.client:GetReq(request)
-    if not response then
-        return nil, err
+-- horrible name - load from a "raw" riak response.
+-- general do not call youself...
+function _M.load(bucket, key, response)
+    local content = response.content
+    if "table" == type(content) then
+        content = content[1]
+    else
+        return nil, "bad content"
     end
-    -- we only support single gets currently
-    local content = response.content[1]
-    -- there is probably a more effecient way to do this    
+
     local object = {
         key = key,
         bucket = bucket,
@@ -36,7 +39,7 @@ function _M.get(bucket, key)
         content_type = content.content_type,
         last_mod = content.last_mod
     }
-    
+              
     local meta = {}
     if content.usermeta then 
         for _,m in ipairs(content.usermeta) do
@@ -44,42 +47,22 @@ function _M.get(bucket, key)
         end
     end
     object.meta = meta
-    return setmetatable(object,  { __index = mt })
+    return setmetatable(object, { __index = mt })
 end
 
+local riak_client_store_object = riak_client.store_object
 function mt.store(self)
-    if not self.content_type then
-        return nil, "content_type is required"
-    end
-    
-    if not self.key then
-        return nil, "only support named keys for now"
-    end
-    
-    local meta = {}
-    for k,v in pairs(self.meta) do
-        insert(meta, { key = k, value = v })
-    end
-    
-    local bucket = self.bucket
-
-    local request = {
-        bucket = bucket.name,
-        key = self.key,
-        --vclock = self.vclock,
-        content = {
-            value = self.value or "",
-            content_type = self.content_type,
-            charset = self.charset,
-            content_encoding = self.content_encoding, 
-            usermeta = meta
-        }
-    }
-    return bucket.client:PutReq(request)
+    return riak_client_store_object(self.client, self.bucket.name, self)
 end
+
+local riak_client_delete_object = riak_client.delete_object
 
 function mt.delete(self)
-    return self.bucket:delete(self.key)
+    local key = self.key
+    if not key then
+        return nil, "no key"
+    end
+    return riak_client_delete_object(self.client, self.bucket.name, key)
 end
 
 return _M
