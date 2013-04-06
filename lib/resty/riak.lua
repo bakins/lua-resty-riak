@@ -1,3 +1,6 @@
+--- High Level Riak client
+-- @module resty.riak
+
 local require = require
 local setmetatable = setmetatable
 local error = error
@@ -12,6 +15,8 @@ local riak_bucket_new = riak_bucket.new
 local riak_client = require "resty.riak.client"
 local riak_client_new = riak_client.new
 
+--- create a new riak client
+-- @treturn object a highlevel riak client
 function _M.new()
     local self = riak_client_new()
     self.bucket = riak_bucket_new
