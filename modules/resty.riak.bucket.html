@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>lua-resty-riak reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/resty.riak.html">resty.riak</a></li>
+  <li><strong>resty.riak.bucket</strong></li>
+  <li><a href="../modules/resty.riak.client.html">resty.riak.client</a></li>
+  <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
+  <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>resty.riak.bucket</code></h1>
+
+<p>Riak bucket.</p>
+<p> Can only be used with <a href="../modules/resty.riak.html#">resty.riak</a> created client</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new_object">new_object&nbsp;(self, key)</a></td>
+	<td class="summary">Create a new riak value object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#new">new&nbsp;(client, name)</a></td>
+	<td class="summary">Create a new bucket object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get">get&nbsp;(self, key)</a></td>
+	<td class="summary">Get a riak object</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_or_new">get_or_new&nbsp;(self, key)</a></td>
+	<td class="summary">Get a riak object or create one if it does not exist</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#delete">delete&nbsp;(self, key)</a></td>
+	<td class="summary">Delete an object</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Functions"></a>Functions</h2>
+    <dl class="function">
+    <dt>
+    <a name = "new_object"></a>
+    <strong>new_object&nbsp;(self, key)</strong>
+    </dt>
+    <dd>
+    Create a new riak value object.  this can also be called as <code>bucket:new(key)</code>
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><a class="type" href="../modules/resty.riak.object.html#">resty.riak.object</a></span>
+
+
+    </ol>
+
+
+    <h3>see also:</h3>
+    <ul>
+         <a href="../modules/resty.riak.object.html#new">resty.riak.object.new</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "new"></a>
+    <strong>new&nbsp;(client, name)</strong>
+    </dt>
+    <dd>
+    Create a new bucket object.  This does not actually do anything to riak. It only sets up the Lua objects
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">client</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.html#">resty.riak</a></span>
+         a resy.riak created client</li>
+        <li><span class="parameter">name</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         the name of the bucket</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+        a riak bucket object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get"></a>
+    <strong>get&nbsp;(self, key)</strong>
+    </dt>
+    <dd>
+    Get a riak object
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="../modules/resty.riak.object.html#">resty.riak.object</a></span>
+        <code>nil</code> if not found</li>
+        <li>
+          <span class="types"><span class="type">error</span></span>
+        description. <code>not found</code> if not found</li>
+    </ol>
+
+
+    <h3>see also:</h3>
+    <ul>
+         <a href="../modules/resty.riak.client.html#get_object">resty.riak.client.get_object</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "get_or_new"></a>
+    <strong>get_or_new&nbsp;(self, key)</strong>
+    </dt>
+    <dd>
+    Get a riak object or create one if it does not exist
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="../modules/resty.riak.object.html#">resty.riak.object</a></span>
+
+</li>
+        <li>
+          <span class="types"><span class="type">error</span></span>
+        description.</li>
+    </ol>
+
+
+    <h3>see also:</h3>
+    <ul>
+         <li><a href="../modules/resty.riak.bucket.html#new_object">new_object</a></li>
+         <li><a href="../modules/resty.riak.bucket.html#get">get</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "delete"></a>
+    <strong>delete&nbsp;(self, key)</strong>
+    </dt>
+    <dd>
+    Delete an object
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+
+
+    <h3>see also:</h3>
+    <ul>
+         <a href="../modules/resty.riak.client.html#delete_object">resty.riak.client.delete_object</a>
+    </ul>
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

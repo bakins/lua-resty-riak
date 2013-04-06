@@ -1,0 +1,476 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>lua-resty-riak reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/resty.riak.html">resty.riak</a></li>
+  <li><a href="../modules/resty.riak.bucket.html">resty.riak.bucket</a></li>
+  <li><strong>resty.riak.client</strong></li>
+  <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
+  <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>resty.riak.client</code></h1>
+
+<p>&ldquo;Low level&rdquo; riak client</p>
+<p>
+</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new">new&nbsp;()</a></td>
+	<td class="summary">Creates a riak object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#set_timeout">set_timeout&nbsp;(self, timeout)</a></td>
+	<td class="summary">Sets the timeout protection for subsequent operations, including the <a href="../modules/resty.riak.client.html#connect">connect</a>  method.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#connect">connect&nbsp;(self, host, port)</a></td>
+	<td class="summary">Attempts to connect to the remote host and port.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#set_keepalive">set_keepalive&nbsp;(self, timeout, size)</a></td>
+	<td class="summary">Keeps the current riak connection alive and put it into the ngx_lua cosocket connection pool.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#store_object">store_object&nbsp;(self, bucket, object)</a></td>
+	<td class="summary">Store a &ldquo;raw&rdquo; riak object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#delete_object">delete_object&nbsp;(self, bucket, key)</a></td>
+	<td class="summary">Delete an object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_object">get_object&nbsp;(self, bucket, key)</a></td>
+	<td class="summary">Retrieve an object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ping">ping&nbsp;(self)</a></td>
+	<td class="summary">&ldquo;Ping&rdquo; the riak server.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_client_id">get_client_id&nbsp;(self)</a></td>
+	<td class="summary">Retrieve client id.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_server_info">get_server_info&nbsp;(self)</a></td>
+	<td class="summary">&ldquo;Ping&rdquo; the riak server.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_bucket_props">get_bucket_props&nbsp;(self, bucket)</a></td>
+	<td class="summary">Get bucket properties</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Functions"></a>Functions</h2>
+    <dl class="function">
+    <dt>
+    <a name = "new"></a>
+    <strong>new&nbsp;()</strong>
+    </dt>
+    <dd>
+    Creates a riak object.
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">riak.resty.client</span></span>
+        &ldquo;low level&rdquo; client object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "set_timeout"></a>
+    <strong>set_timeout&nbsp;(self, timeout)</strong>
+    </dt>
+    <dd>
+    Sets the timeout protection for subsequent operations, including the <a href="../modules/resty.riak.client.html#connect">connect</a>  method.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">timeout</span>
+            <span class="types"><span class="type">number</span></span>
+         in milliseconds</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "connect"></a>
+    <strong>connect&nbsp;(self, host, port)</strong>
+    </dt>
+    <dd>
+    Attempts to connect to the remote host and port.
+ Before actually resolving the host name and connecting to the remote backend,
+ this method will always look up the connection pool for matched idle connections
+ created by previous calls of this method.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">host</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         see <a href="http://wiki.nginx.org/HttpLuaModule#tcpsock:connect">tcpsock:connect</a></li>
+        <li><span class="parameter">port</span>
+            <span class="types"><span class="type">number</span></span>
+         see <a href="http://wiki.nginx.org/HttpLuaModule#tcpsock:connect">tcpsock:connect</a></li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        not true on error</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "set_keepalive"></a>
+    <strong>set_keepalive&nbsp;(self, timeout, size)</strong>
+    </dt>
+    <dd>
+    Keeps the current riak connection alive and put it into the ngx_lua cosocket connection pool.
+ You can specify the max idle timeout when the connection is in the pool and the maximal size of the pool every nginx worker process.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">timeout</span>
+            <span class="types"><span class="type">number</span></span>
+         in milliseconds see <a href="http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive">tcpsock:setkeepalive</a></li>
+        <li><span class="parameter">size</span>
+            <span class="types"><span class="type">number</span></span>
+         the maximal number of connections allowed in the connection pool for the current server. see <a href="http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive">tcpsock:setkeepalive</a></li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        not true on error</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "store_object"></a>
+    <strong>store_object&nbsp;(self, bucket, object)</strong>
+    </dt>
+    <dd>
+    Store a &ldquo;raw&rdquo; riak object.  The definition of a riak object is defined
+ in the riak PBC as <a href="http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Fetch-Object/">RpbContent</a>.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">object</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         in the form of RpbContent</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        not true on error</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">
+ <span class="keyword">local</span> object = { key = <span class="string">"1"</span>, value = <span class="string">"test"</span>, content_type = <span class="string">"text/plain"</span> }
+ <span class="keyword">local</span> rc, err = client:store_object(<span class="string">"bucket-name"</span>, object)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "delete_object"></a>
+    <strong>delete_object&nbsp;(self, bucket, key)</strong>
+    </dt>
+    <dd>
+    Delete an object.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        not true on error. If an object does not exist and there is no other error (network, time out, etc) then this will still return true.</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_object"></a>
+    <strong>get_object&nbsp;(self, bucket, key)</strong>
+    </dt>
+    <dd>
+    Retrieve an object.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        <a href="http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Fetch-Object/">RpbContent</a>.  If not found, then <code>nil</code>.</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description.   If not found, <code>not found</code> will be returned.</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ping"></a>
+    <strong>ping&nbsp;(self)</strong>
+    </dt>
+    <dd>
+    &ldquo;Ping&rdquo; the riak server.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        not true on error.</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_client_id"></a>
+    <strong>get_client_id&nbsp;(self)</strong>
+    </dt>
+    <dd>
+    Retrieve client id.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        id</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_server_info"></a>
+    <strong>get_server_info&nbsp;(self)</strong>
+    </dt>
+    <dd>
+    &ldquo;Ping&rdquo; the riak server.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        info as defined in <a href="http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Server-Info/#Response">RpbGetServerInfoResp</a></li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_bucket_props"></a>
+    <strong>get_bucket_props&nbsp;(self, bucket)</strong>
+    </dt>
+    <dd>
+    Get bucket properties
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        properties as defined in <a href="http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response">RpbBucketProps</a></li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
