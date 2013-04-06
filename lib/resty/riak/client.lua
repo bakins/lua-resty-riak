@@ -303,8 +303,8 @@ function _M.get_server_info(self)
     end
 end
 
-local GetBucketReq = riak_kv.RpbGetBucketReq
-local GetBucketResp = riak_kv.RpbGetBucketResp()
+local GetBucketReq = riak.RpbGetBucketReq
+local GetBucketResp = riak.RpbGetBucketResp()
 --- Get bucket properties
 -- @tparam resty.riak.client self
 -- @tparam string bucket
