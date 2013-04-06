@@ -1,3 +1,6 @@
+--- "Low level" riak client
+-- @module resty.riak.client
+
 local require = require
 local setmetatable = setmetatable
 local error = error
@@ -77,6 +80,8 @@ local function send_request(sock, msgcode, encoder, request)
     end
 end
     
+--- Creates a riak object.
+-- @treturn riak.resty.client "low level" client object
 function _M.new()
     local sock, err = ngx.socket.tcp()
     if not sock then
@@ -90,27 +95,64 @@ end
 
 -- Generic socket functions
 
+--- Sets the timeout protection for subsequent operations, including the `connect` method.
+-- @tparam resty.riak.client self
+-- @tparam number timeout in milliseconds
 function _M.set_timeout(self, timeout)
     return self.sock:settimeout(timeout)
 end
 
+--- Attempts to connect to the remote host and port.
+-- Before actually resolving the host name and connecting to the remote backend, 
+-- this method will always look up the connection pool for matched idle connections 
+-- created by previous calls of this method.
+-- @tparam resty.riak.client self
+-- @tparam string host see [tcpsock:connect](http://wiki.nginx.org/HttpLuaModule#tcpsock:connect)
+-- @tparam number port see [tcpsock:connect](http://wiki.nginx.org/HttpLuaModule#tcpsock:connect)
+-- @treturn boolean not true on error
+-- @treturn string error description
 function _M.connect(self, ...)
     return self.sock:connect(...)
 end
 
+--- Keeps the current riak connection alive and put it into the ngx_lua cosocket connection pool.
+-- You can specify the max idle timeout when the connection is in the pool and the maximal size of the pool every nginx worker process.
+-- @tparam resty.riak.client self
+-- @tparam number timeout in milliseconds see [tcpsock:setkeepalive](http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive)
+-- @tparam number size the maximal number of connections allowed in the connection pool for the current server. see [tcpsock:setkeepalive](http://wiki.nginx.org/HttpLuaModule#tcpsock:setkeepalive)
+-- @treturn boolean not true on error
+-- @treturn string error description
 function _M.set_keepalive(self, ...)
     return self.sock:setkeepalive(...)
 end
 
+-- This method returns the (successfully) reused times for the current connection. 
+-- If the current connection does not come from the built-in connection pool, then this method always returns `0`, that is, the connection has never been reused (yet). If the connection comes from the connection pool, then the return value is always non-zero. So this method can also be used to determine if the current connection comes from the pool.
+-- @tparam resty.riak.client self
+-- @treturn number times the connection has been used
 function _M.get_reused_times(self)
     return self.sock:getreusedtimes()
 end
 
+-- Closes the riak connection
+-- @tparam resty.riak.client self
+-- @treturn boolean not true on error
+-- @treturn string error description
 function _M.close(self)
     return self.sock:close()
 end
 
 local PutReq = riak_kv.RpbPutReq
+--- Store a "raw" riak object. The definition of a riak object is defined
+-- in the riak PBC as [RpbContent](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Fetch-Object/).
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam table object in the form of RpbContent
+-- @treturn boolean not true on error
+-- @treturn string error description
+-- @usage
+-- local object = { key = "1", value = "test", content_type = "text/plain" } 
+-- local rc, err = client:store_object("bucket-name", object)
 function _M.store_object(self, bucket, object)
     local sock = self.sock
 
@@ -142,6 +184,12 @@ function _M.store_object(self, bucket, object)
 end
 
 local DelReq = riak_kv.RpbDelReq
+--- Delete an object.
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam string key
+-- @treturn boolean not true on error. If an object does not exist and there is no other error (network, time out, etc) then this will still return true.
+-- @treturn string error description
 function _M.delete_object(self, bucket, key)
     local sock = self.sock
     
@@ -166,6 +214,12 @@ end
 
 local GetReq = riak_kv.RpbGetReq
 local GetResp = riak_kv.RpbGetResp()
+--- Retrieve an object.
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam string key
+-- @treturn table [RpbContent](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Fetch-Object/).  If not found, then `nil`. 
+-- @treturn string error description.   If not found, `not found` will be returned.
 function _M.get_object(self, bucket, key)
     local sock = self.sock
     local request = {
@@ -190,6 +244,10 @@ function _M.get_object(self, bucket, key)
     end
 end
 
+--- "Ping" the riak server.
+-- @tparam resty.riak.client self
+-- @treturn boolean not true on error.
+-- @treturn string error description
 function _M.ping(self)
     -- 1 = PingReq
     local msgcode, response = send_request(self.sock, 1)
@@ -206,6 +264,10 @@ function _M.ping(self)
 end
 
 local GetClientIdResp = riak_kv.RpbGetClientIdResp()
+--- Retrieve client id.
+-- @tparam resty.riak.client self
+-- @treturn string id
+-- @treturn string error description
 function _M.get_client_id(self)
     -- 3 = GetClientIdReq
     local msgcode, response = send_request(self.sock, 3)
@@ -222,6 +284,10 @@ function _M.get_client_id(self)
 end
 
 local GetServerInfoResp = riak.RpbGetServerInfoResp()
+--- "Ping" the riak server.
+-- @tparam resty.riak.client self
+-- @treturn table info as defined in [RpbGetServerInfoResp](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Server-Info/#Response)
+-- @treturn string error description
 function _M.get_server_info(self)
     -- 7 = GetClientIdReq
     local msgcode, response = send_request(self.sock, 7)
@@ -237,8 +303,13 @@ function _M.get_server_info(self)
     end
 end
 
-local GetBucketReq = riak_kv.RpbGetBucketReq
-local GetBucketResp = riak_kv.RpbGetBucketResp()
+local GetBucketReq = riak.RpbGetBucketReq
+local GetBucketResp = riak.RpbGetBucketResp()
+--- Get bucket properties
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @treturn table properties as defined in [RpbBucketProps](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response)
+-- @treturn string error description
 function _M.get_bucket_props(self, bucket)
     local request = {
         bucket = bucket
