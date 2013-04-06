@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>lua-resty-riak reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Status_">Status </a></li>
+<li><a href="#Description_">Description </a></li>
+<li><a href="#Synopsis_">Synopsis </a></li>
+<li><a href="#Usage_">Usage </a></li>
+<li><a href="#Limitations_">Limitations </a></li>
+<li><a href="#TODO_">TODO </a></li>
+<li><a href="#Author_">Author </a></li>
+<li><a href="#See_Also_">See Also </a></li>
+</ul>
+
+
+<h2>Topics</h2>
+<ul>
+  <li><strong>README.md</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/resty.riak.html">resty.riak</a></li>
+  <li><a href="../modules/resty.riak.bucket.html">resty.riak.bucket</a></li>
+  <li><a href="../modules/resty.riak.client.html">resty.riak.client</a></li>
+  <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
+  <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
+</ul>
+<h2>Examples</h2>
+<ul>
+  <li><a href="../examples/client.lua.html">client.lua</a></li>
+  <li><a href="../examples/delete.lua.html">delete.lua</a></li>
+  <li><a href="../examples/info.lua.html">info.lua</a></li>
+  <li><a href="../examples/simple.lua.html">simple.lua</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Topic <code>README.md</code></h1>
+
+    <h1>lua-resty-riak </h1>
+
+<p>lua-resty-riak &ndash; Lua riak protocol buffer client driver for the ngx_lua
+based on the cosocket API.</p>
+
+<p>Originally based on the
+<a href="https://github.com/agentzh/lua-resty-memcached">lua-resty-memcached</a>
+library.</p>
+
+<p>Influence by <a href="https://github.com/basho/riak-ruby-client/">riak-client-ruby</a></p>
+
+<p><a name="Status"></a></p>
+
+<h2>Status </h2>
+
+<p>This library is currently <em>alpha</em> quality. It passes all its unit
+tests. A few billion requests per day are handled by it however.</p>
+
+<p><a name="Description"></a></p>
+
+<h2>Description </h2>
+
+<p>This Lua library is a riak protocol buffer client driver for the <a href="http://wiki.nginx.org/HttpLuaModule">ngx_lua nginx module</a></p>
+
+<p>This Lua library takes advantage of ngx_lua&rsquo;s cosocket API, which ensures
+100% nonblocking behavior.</p>
+
+<p>Note that at least <a href="https://github.com/chaoslawful/lua-nginx-module/tags">ngx_lua 0.5.0rc29</a> or <a href="http://openresty.org/#Download">ngx_openresty 1.0.15.7</a> is required.</p>
+
+<p>Depends on the following Lua modules:</p>
+
+<ul>
+<li>lua-pb &ndash; https://github.com/Neopallium/lua-pb</li>
+<li>struct &ndash; http://www.inf.puc-rio.br/~roberto/struct/</li>
+<li>lpack &ndash; http://www.tecgraf.puc-rio.br/~lhf/ftp/lua/#lpack </li>
+</ul>
+
+
+<p><a name="Synopsis"></a></p>
+
+<h2>Synopsis </h2>
+
+<pre>
+ lua_package_path <span class="string">"/path/to/lua-resty-riak/lib/?.lua;;"</span>;
+ location /t {
+     content_by_lua <span class="string">'
+         require "luarocks.loader"
+         local riak = require "resty.riak"
+         local client = riak.new()
+         local ok, err = client:connect("127.0.0.1", 8087)
+         if not ok then
+             ngx.log(ngx.ERR, "connect failed: " .. err)
+         end
+         local bucket = client:bucket("test")
+         local object = bucket:new("1")
+         object.value = "test"
+         object.content_type = "text/plain"
+         local rc, err = object:store()
+         ngx.say(rc)
+         local object, err = bucket:get("1")
+         if not object then
+             ngx.say(err)
+         else
+             ngx.say(object.value)
+         end
+         client:close()
+     '</span>;
+ }
+</pre>
+
+
+<p><a name="Usage"></a></p>
+
+<h2>Usage </h2>
+
+<p>See the <a href="http://bakins.github.io/lua-resty-riak/">generated docs</a>  for usage and examples.</p>
+
+<p><a name="Limitations"></a></p>
+
+<h2>Limitations </h2>
+
+<ul>
+<li>This library cannot be used in code contexts like <em>set_by_lua</em>, <em>log_by_lua</em>, and
+<em>header_filter_by_lua</em> where the ngx_lua cosocket API is not available.</li>
+<li>The <a href="../modules/resty.riak.html#">resty.riak</a>  object instances  cannot be stored in a Lua variable at the Lua module level,
+because it will then be shared by all the concurrent requests handled by the same nginx
+worker process (see <a href="http://wiki.nginx.org/HttpLuaModule#Data%5C_Sharing%5C_within%5C_an%5C_Nginx_Worker">Data Sharing within an Nginx Worker</a> ) and
+result in bad race conditions when concurrent requests are trying to use the same instances.
+You should always initiate these objects in function local
+variables or in the <code>ngx.ctx</code> table. These places all have their own data copies for
+each request.</li>
+</ul>
+
+
+<p><a name="TODO"></a></p>
+
+<h2>TODO </h2>
+
+<p><a name="Author"></a></p>
+
+<h2>Author </h2>
+
+<p>Brian Akins <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x62;&#x72;&#x69;&#x61;&#x6e;&#64;&#x61;&#107;&#105;&#110;&#x73;&#46;&#111;&#x72;&#103;">&#98;&#x72;&#105;&#97;&#110;&#x40;&#x61;&#107;&#105;&#110;&#x73;&#46;&#111;&#x72;&#103;</a></p>
+
+<p>Heavily influenced by  Zhang &ldquo;agentzh&rdquo; Yichun (章亦春) <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#x61;&#103;&#x65;&#110;&#116;&#122;&#104;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;">&#x61;&#103;&#101;&#x6e;&#x74;&#122;&#104;&#64;&#103;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a>.</p>
+
+<h1>Copyright and License</h1>
+
+<p>This module is licensed under the BSD license.</p>
+
+<p>Copyright &copy; 2012, by Brian Akins <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x62;&#x72;&#105;&#97;&#110;&#64;&#x61;&#x6b;&#x69;&#110;&#x73;&#x2e;&#111;&#114;&#x67;">&#98;&#114;&#x69;&#97;&#x6e;&#x40;&#x61;&#107;&#x69;&#x6e;&#x73;&#46;&#111;&#114;&#x67;</a>.</p>
+
+<p>All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
+
+<ul>
+<li><p>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</p></li>
+<li><p>Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</p></li>
+</ul>
+
+
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &ldquo;AS IS&rdquo; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<p><a name="See_Also"></a></p>
+
+<h2>See Also </h2>
+
+<ul>
+<li><a href="http://wiki.nginx.org/HttpLuaModule">ngx_lua module</a></li>
+<li><a href="https://github.com/basho/riak-ruby-client/">riak-client-ruby</a></li>
+<li><a href="https://wiki.basho.com/PBC-API.html">Riak Protocol Buffer API</a></li>
+</ul>
+
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
