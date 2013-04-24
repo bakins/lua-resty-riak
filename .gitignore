@@ -4,3 +4,4 @@
 t/servroot/
 .vagrant
 .vagrant.*
+*.rock
