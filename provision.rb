@@ -30,7 +30,7 @@ service "riak" do
   action [ :enable, :start]
 end
 
-execute "lucarocks install https://raw.github.com/Neopallium/lua-pb/master/lua-pb-scm-0.rockspec" do
+execute "luarocks install https://raw.github.com/Neopallium/lua-pb/master/lua-pb-scm-0.rockspec" do
   not_if "luarocks show lua-pb"
 end
 
