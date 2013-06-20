@@ -33,7 +33,7 @@ __DATA__
             if not ok then
                 ngx.log(ngx.ERR, "connect failed: " .. err)
             end
-            local object = { key = "1", value = "test", content_type = "text/plain", meta = { foo = "bar" } }
+            local object = { key = "1", content = { value = "test", content_type = "text/plain", usermeta = { { key = "foo", value = "bar" } } } }
             local rc, err = client:store_object("test", object)
             ngx.say(rc)
             local object, err = client:get_object("test", "1")
@@ -44,6 +44,8 @@ __DATA__
                 ngx.say(type(object.content[1].usermeta))
 		ngx.say(object.content[1].usermeta[1].value)
             end
+	    local rc, err = client:delete_object("test", "1")
+            ngx.say(rc)
             client:close()
         ';
     }
@@ -54,6 +56,7 @@ true
 test
 table
 bar
+true
 --- no_error_log
 [error]
 
@@ -77,7 +80,7 @@ bar
             ngx.say(rc)
             if not rc then
                 ngx.say(err)
-            end  
+            end
             local object, err = bucket:get("1")
             if not object then
                 ngx.say(err)
@@ -86,6 +89,8 @@ bar
 		ngx.say(type(object.meta))
 		ngx.say(object.meta.foo)
             end
+            local rc, err = object:delete()
+            ngx.say(rc)
             client:close()
         ';
     }
@@ -96,5 +101,6 @@ true
 test
 table
 bar
+true
 --- no_error_log
 [error]
