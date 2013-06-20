@@ -84,4 +84,13 @@ function _M.delete(self, key)
     return riak_client_delete_object(self.client, self.name, key)
 end
 
+local riak_client_get_index = riak_client.get_index
+-- Query a secondary index
+-- @tparam resty.riak.bucket self
+-- @tparam string bucket
+-- @tparam string index
+-- @param value If this is a string, this is an exact match query, if a table then it is a range query
+function _M.index(self, index, value)
+    return riak_client_get_index(self.client, self.name, index, value)
+end
 return _M
