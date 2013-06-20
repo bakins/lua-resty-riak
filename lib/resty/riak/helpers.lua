@@ -54,10 +54,10 @@ function _M.RpbPairs_to_table(p)
     local t = {}
     if p then
         for _,m in ipairs(p) do
-            p[m.key] = m.value
+            t[m.key] = m.value
         end
     end
-    return p
+    return t
 end
 
 
