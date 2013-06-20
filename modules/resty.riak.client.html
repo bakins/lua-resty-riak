@@ -62,9 +62,10 @@
 
 <h1>Module <code>resty.riak.client</code></h1>
 
-<p>&ldquo;Low level&rdquo; riak client</p>
-<p>
-</p>
+<p>&ldquo;Low level&rdquo; riak client.</p>
+<p> Just a thin wrapper over the &ldquo;raw&rdquo; protocol buffers.
+ This API may change and should not be considered stable. It may change between major versions.
+ While not &ldquo;private&rdquo;, just be aware it may change. Only the high-level API is considered stable.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
@@ -112,6 +113,10 @@
 	<tr>
 	<td class="name" nowrap><a href="#get_bucket_props">get_bucket_props&nbsp;(self, bucket)</a></td>
 	<td class="summary">Get bucket properties</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_index">get_index&nbsp;(self, bucket, index, value)</a></td>
+	<td class="summary">Query a secondary index</td>
 	</tr>
 </table>
 
@@ -275,8 +280,10 @@
     <h3>Usage:</h3>
     <ul>
         <pre class="example">
- <span class="keyword">local</span> object = { key = <span class="string">"1"</span>, value = <span class="string">"test"</span>, content_type = <span class="string">"text/plain"</span> }
- <span class="keyword">local</span> rc, err = client:store_object(<span class="string">"bucket-name"</span>, object)</pre>
+ <span class="keyword">local</span> object = { key = <span class="string">"1"</span>, content = { value = <span class="string">"test"</span>, content_type = <span class="string">"text/plain"</span> } }
+ <span class="keyword">local</span> rc, err = client:store_object(<span class="string">"bucket-name"</span>, object)
+ <span class="comment">-- if using eleveldb, secondary indexes can be added to object before storing
+</span> <span class="keyword">local</span> object = { key = <span class="string">"1"</span>, content = { { value = <span class="string">"test"</span>, content_type = <span class="string">"text/plain"</span>, indexes = { { key = <span class="string">"foo_bin"</span>, value = <span class="string">"bar"</span> } } } }}</pre>
     </ul>
 
 </dd>
@@ -469,6 +476,36 @@
           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
         error description</li>
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_index"></a>
+    <strong>get_index&nbsp;(self, bucket, index, value)</strong>
+    </dt>
+    <dd>
+    Query a secondary index
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">index</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">value</span>
+         If this is a string, this is an exact match query, if a table then it is a range query</li>
+    </ul>
+
 
 
 

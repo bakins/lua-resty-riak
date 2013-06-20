@@ -88,6 +88,10 @@
 	<td class="name" nowrap><a href="#delete">delete&nbsp;(self, key)</a></td>
 	<td class="summary">Delete an object</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#properties">properties&nbsp;(self, bucket)</a></td>
+	<td class="summary">Get bucket properties</td>
+	</tr>
 </table>
 
 <br/>
@@ -260,6 +264,39 @@
     <ul>
          <a href="../modules/resty.riak.client.html#delete_object">resty.riak.client.delete_object</a>
     </ul>
+
+
+</dd>
+    <dt>
+    <a name = "properties"></a>
+    <strong>properties&nbsp;(self, bucket)</strong>
+    </dt>
+    <dd>
+    Get bucket properties
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        properties as defined in <a href="http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response">RpbBucketProps</a></li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
 
 
 </dd>
