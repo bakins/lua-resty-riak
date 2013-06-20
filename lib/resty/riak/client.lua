@@ -8,7 +8,6 @@ local ngx = ngx
 local type = type
 
 local helpers = require("resty.riak.helpers")
-local table_to_RpbPairs = helpers.table_to_RpbPairs
 
 local _M = helpers.module()
 
@@ -150,7 +149,7 @@ local function handle_request_response(sock, request_msgcode, encoder, request, 
     if not msgcode then
         return nil, response
     end
-    
+
     if msgcode == response_msgcode then
 	return handler(response)
     else
@@ -175,24 +174,8 @@ end
 -- -- if using eleveldb, secondary indexes can be added to object before storing
 -- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar" } } } 
 function _M.store_object(self, bucket, object)
-    local sock = self.sock
-
-    local request = {
-        bucket = bucket,
-        key = object.key,
-        content = {
-            value = object.value or "",
-            content_type = object.content_type,
-            charset = object.charset,
-            content_encoding = object.content_encoding,
-            usermeta = table_to_RpbPairs(object.meta),
-	    indexes = table_to_RpbPairs(object.indexes)
-        }
-    }
-
-    -- 11 = PutReq
-    -- 12 = PutResp
-    return handle_request_response(sock, 11, PutReq, request, 12, true_handler)
+    object.bucket = bucket
+    return handle_request_response(self.sock, 11, PutReq, object, 12, true_handler)
 end
 
 local DelReq = riak_kv.RpbDelReq
@@ -236,7 +219,6 @@ function _M.get_object(self, bucket, key)
         bucket = bucket,
         key = key
     }
-    
     -- 9 = GetReq
     -- 10 = GetResp
     return handle_request_response(sock, 9, GetReq, request, 10, get_handler)
