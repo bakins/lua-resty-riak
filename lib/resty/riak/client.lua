@@ -1,4 +1,6 @@
---- "Low level" riak client
+--- "Low level" riak client. Just a thin wrapper over the "raw" protocol buffers.
+-- This API may change and should not be considered stable. It may change between major versions.
+-- While not "private", just be aware it may change. Only the high-level API is considered stable.
 -- @module resty.riak.client
 
 local require = require
@@ -6,10 +8,10 @@ local setmetatable = setmetatable
 local error = error
 local ngx = ngx
 local type = type
-local pairs = pairs
-local insert = table.insert
 
-local _M = require("resty.riak.helpers").module()
+local helpers = require("resty.riak.helpers")
+
+local _M = helpers.module()
 
 local pb = require "pb"
 local struct = require "struct"
@@ -149,24 +151,11 @@ local function handle_request_response(sock, request_msgcode, encoder, request, 
     if not msgcode then
         return nil, response
     end
-    
+
     if msgcode == response_msgcode then
 	return handler(response)
     else
 	return nil, "unhandled response type"
-    end
-end
-
-local function table_to_RpbPairs(t)
-    local rc
-    if t then
-	rc = {}
-	for k,v in pairs(t) do
-	    insert(rc, { key = k, value = v})
-	end
-	return rc
-    else
-	return nil
     end
 end
 
@@ -182,29 +171,13 @@ end
 -- @treturn boolean not true on error
 -- @treturn string error description
 -- @usage
--- local object = { key = "1", value = "test", content_type = "text/plain" } 
+-- local object = { key = "1", content = { value = "test", content_type = "text/plain" } }
 -- local rc, err = client:store_object("bucket-name", object)
 -- -- if using eleveldb, secondary indexes can be added to object before storing
--- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { "foo_bin" = "bar" } }
+-- local object = { key = "1", content = { { value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar" } } } }}
 function _M.store_object(self, bucket, object)
-    local sock = self.sock
-
-    local request = {
-        bucket = bucket,
-        key = object.key,
-        content = {
-            value = object.value or "",
-            content_type = object.content_type,
-            charset = object.charset,
-            content_encoding = object.content_encoding,
-            usermeta = object.meta,
-	    indexes = table_to_RpbPairs(object.indexes)
-        }
-    }
-
-    -- 11 = PutReq
-    -- 12 = PutResp
-    return handle_request_response(sock, 11, PutReq, request, 12, true_handler)
+    object.bucket = bucket
+    return handle_request_response(self.sock, 11, PutReq, object, 12, true_handler)
 end
 
 local DelReq = riak_kv.RpbDelReq
@@ -235,6 +208,7 @@ local function get_handler(response)
     end
     return GetResp:Parse(response)
 end
+
 --- Retrieve an object.
 -- @tparam resty.riak.client self
 -- @tparam string bucket
@@ -247,7 +221,6 @@ function _M.get_object(self, bucket, key)
         bucket = bucket,
         key = key
     }
-    
     -- 9 = GetReq
     -- 10 = GetResp
     return handle_request_response(sock, 9, GetReq, request, 10, get_handler)
