@@ -7,9 +7,10 @@ local require = require
 local setmetatable = setmetatable
 local error = error
 local type = type
-
+local ngx = ngx
 local helpers = require("resty.riak.helpers")
 local RpbPairs_to_table = helpers.RpbPairs_to_table
+local table_to_RpbPairs = helpers.table_to_RpbPairs
 
 local _M = helpers.module()
 
@@ -26,7 +27,8 @@ function _M.new(bucket, key)
         bucket = bucket,
 	client = bucket.client,
         key = key,
-        meta = {}
+        meta = {},
+	indexes = {}
     }
     return setmetatable(o,  { __index = _M })
 end
@@ -39,10 +41,10 @@ end
 -- @treturn string error description
 function _M.load(bucket, key, response)
     local content = response.content[1]
-
     local object = {
         key = key,
         bucket = bucket,
+	client = bucket.client,
         --vclock = response.vclock,
         value = content.value,
         charset = content.charset,
@@ -51,16 +53,28 @@ function _M.load(bucket, key, response)
         last_mod = content.last_mod,
 	meta = RpbPairs_to_table(content.usermeta)
     }
-    
+
     return setmetatable(object, { __index = _M })
 end
 
 local riak_client_store_object = riak_client.store_object
 --- Persist an object to riak.
--- @treturn resty.riak.object self
+-- @tparam resty.riak.object self
 -- @see resty.riak.client.store_object
 function _M.store(self)
-    return riak_client_store_object(self.client, self.bucket.name, self)
+    local object = {
+        key = self.key,
+        content = {
+            value = self.value or "",
+            content_type = self.content_type,
+            charset = self.charset,
+            content_encoding = self.content_encoding,
+            usermeta = table_to_RpbPairs(self.meta),
+	    indexes = table_to_RpbPairs(self.indexes)
+        }
+    }
+
+    return riak_client_store_object(self.client, self.bucket.name, object)
 end
 
 local riak_client_delete_object = riak_client.delete_object
