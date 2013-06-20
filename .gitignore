@@ -2,3 +2,6 @@
 *.swo
 *~
 t/servroot/
+.vagrant
+.vagrant.*
+*.rock
