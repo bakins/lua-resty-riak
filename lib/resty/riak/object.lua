@@ -8,7 +8,10 @@ local setmetatable = setmetatable
 local error = error
 local type = type
 
-local _M = require("resty.riak.helpers").module()
+local helpers = require("resty.riak.helpers")
+local RpbPairs_to_table = helpers.RpbPairs_to_table
+
+local _M = helpers.module()
 
 local riak_client = require "resty.riak.client"
 
@@ -35,12 +38,7 @@ end
 -- @treturn resty.riak.object
 -- @treturn string error description
 function _M.load(bucket, key, response)
-    local content = response.content
-    if "table" == type(content) then
-        content = content[1]
-    else
-        return nil, "bad content"
-    end
+    local content = response.content[1]
 
     local object = {
         key = key,
@@ -50,16 +48,10 @@ function _M.load(bucket, key, response)
         charset = content.charset,
         content_encoding =  content.content_encoding,
         content_type = content.content_type,
-        last_mod = content.last_mod
+        last_mod = content.last_mod,
+	meta = RpbPairs_to_table(content.usermeta)
     }
-              
-    local meta = {}
-    if content.usermeta then 
-        for _,m in ipairs(content.usermeta) do
-            meta[m.key] = m.value
-        end
-    end
-    object.meta = meta
+    
     return setmetatable(object, { __index = _M })
 end
 
