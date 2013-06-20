@@ -22,7 +22,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: simple 2i
+=== TEST 1: simple user metdatdata using raw interface
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
@@ -33,7 +33,7 @@ __DATA__
             if not ok then
                 ngx.log(ngx.ERR, "connect failed: " .. err)
             end
-            local object = { key = "1", content = { value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar"} } } }
+            local object = { key = "1", content = { value = "test", content_type = "text/plain", usermeta = { { key = "foo", value = "bar" } } } }
             local rc, err = client:store_object("test", object)
             ngx.say(rc)
             local object, err = client:get_object("test", "1")
@@ -41,14 +41,11 @@ __DATA__
                 ngx.say(err)
             else
                 ngx.say(object.content[1].value)
+                ngx.say(type(object.content[1].usermeta))
+		ngx.say(object.content[1].usermeta[1].value)
             end
-            local keys = client:get_index("test", "foo_bin", "bar")
-            ngx.say(type(keys[1]))
-
-            -- index miss
-            keys = client:get_index("test", "foo_bin", "this should not be found")
-            ngx.say(type(keys[1]))
-
+	    local rc, err = client:delete_object("test", "1")
+            ngx.say(rc)
             client:close()
         ';
     }
@@ -57,12 +54,13 @@ GET /t
 --- response_body
 true
 test
-string
-nil
+table
+bar
+true
 --- no_error_log
 [error]
 
-=== TEST 2: 2i using highlevel interface
+=== TEST 2: Usermetadata using high level client
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
@@ -77,24 +75,22 @@ nil
             local object = bucket:new("1")
             object.value = "test"
             object.content_type = "text/plain"
-            object.indexes.foo_bin = "bar"
+	    object.meta.foo = "bar"
             local rc, err = object:store()
             ngx.say(rc)
             if not rc then
                 ngx.say(err)
             end
-            local keys, err = bucket:index("foo_bin", "bar")
-            if not keys then
+            local object, err = bucket:get("1")
+            if not object then
                 ngx.say(err)
+            else
+                ngx.say(object.value)
+		ngx.say(type(object.meta))
+		ngx.say(object.meta.foo)
             end
-            ngx.say(type(keys[1]))
-
-            -- index miss
-            local keys, err = bucket:index("foo_bin", "this should not be found")
-            if not keys then
-                ngx.say(err)
-            end
-            ngx.say(type(keys[1]))
+            local rc, err = object:delete()
+            ngx.say(rc)
             client:close()
         ';
     }
@@ -102,7 +98,9 @@ nil
 GET /t
 --- response_body
 true
-string
-nil
+test
+table
+bar
+true
 --- no_error_log
 [error]
