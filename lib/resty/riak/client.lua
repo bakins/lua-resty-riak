@@ -171,10 +171,10 @@ end
 -- @treturn boolean not true on error
 -- @treturn string error description
 -- @usage
--- local object = { key = "1", value = "test", content_type = "text/plain" } 
+-- local object = { key = "1", content = { value = "test", content_type = "text/plain" } }
 -- local rc, err = client:store_object("bucket-name", object)
 -- -- if using eleveldb, secondary indexes can be added to object before storing
--- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar" } } } 
+-- local object = { key = "1", content = { { value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar" } } } }}
 function _M.store_object(self, bucket, object)
     object.bucket = bucket
     return handle_request_response(self.sock, 11, PutReq, object, 12, true_handler)
