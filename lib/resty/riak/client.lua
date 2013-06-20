@@ -1,4 +1,6 @@
---- "Low level" riak client
+--- "Low level" riak client. Just a thin wrapper over the "raw" protocol buffers.
+-- This API may change and should not be considered stable. It may change between major versions.
+-- While not "private", just be aware it may change. Only the high-level API is considered stable.
 -- @module resty.riak.client
 
 local require = require
