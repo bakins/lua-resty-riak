@@ -6,6 +6,8 @@ local setmetatable = setmetatable
 local error = error
 local ngx = ngx
 local type = type
+local pairs = pairs
+local insert = table.insert
 
 local _M = require("resty.riak.helpers").module()
 
@@ -155,6 +157,19 @@ local function handle_request_response(sock, request_msgcode, encoder, request, 
     end
 end
 
+local function table_to_RpbPairs(t)
+    local rc
+    if t then
+	rc = {}
+	for k,v in pairs(t) do
+	    insert(rc, { key = k, value = v})
+	end
+	return rc
+    else
+	return nil
+    end
+end
+
 local PutReq = riak_kv.RpbPutReq
 local function true_handler(response)
     return true
@@ -169,6 +184,8 @@ end
 -- @usage
 -- local object = { key = "1", value = "test", content_type = "text/plain" } 
 -- local rc, err = client:store_object("bucket-name", object)
+-- -- if using eleveldb, secondary indexes can be added to object before storing
+-- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { "foo_bin" = "bar" } }
 function _M.store_object(self, bucket, object)
     local sock = self.sock
 
@@ -179,11 +196,12 @@ function _M.store_object(self, bucket, object)
             value = object.value or "",
             content_type = object.content_type,
             charset = object.charset,
-            content_encoding = object.content_encoding, 
-            usermeta = object.meta
+            content_encoding = object.content_encoding,
+            usermeta = object.meta,
+	    indexes = table_to_RpbPairs(object.indexes)
         }
     }
-    
+
     -- 11 = PutReq
     -- 12 = PutResp
     return handle_request_response(sock, 11, PutReq, request, 12, true_handler)
@@ -290,6 +308,41 @@ function _M.get_bucket_props(self, bucket)
     -- 19 = GetBucketReq
     -- 20 = GetBucketResp
     return handle_request_response(self.sock, 19, GetBucketReq, request, 20, bucket_props_handler)
+end
+
+local IndexReq = riak_kv.RpbIndexReq
+local IndexResp = riak_kv.RpbIndexResp()
+local function index_handler(response)
+    if response then
+	return IndexResp:Parse(response).keys, nil
+    else
+	return {}
+    end
+end
+
+--- Query a secondary index
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam string index
+-- @param value If this is a string, this is an exact match query, if a table then it is a range query
+function _M.get_index(self, bucket, index, value)
+    -- IndexQueryType: eq = 0, range = 1
+    local qtype = ("table" == type(value)) and 1 or 0
+
+    local request = {
+	bucket = bucket,
+	index = index,
+	qtype = qtype
+    }
+    if 0 == qtype then
+	request.key = value
+    else
+	request.range_min = value[1]
+	request.range_max = value[2]
+    end
+    -- 25 = RpbIndexReq
+    -- 26 = RpbIndexResp
+    return handle_request_response(self.sock, 25, IndexReq, request, 26, index_handler)
 end
 
 return _M

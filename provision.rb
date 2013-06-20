@@ -26,6 +26,12 @@ file "/etc/default/riak" do
   notifies :restart, "service[riak]"
 end
 
+template "/etc/riak/app.config" do
+  source "/vagrant/app.config"
+  local true
+  notifies :restart, "service[riak]"
+end
+
 service "riak" do
   action [ :enable, :start]
 end
