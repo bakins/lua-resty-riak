@@ -22,7 +22,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: simple user metdatdata
+=== TEST 1: simple user metdatdata using raw interface
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
@@ -43,6 +43,48 @@ __DATA__
                 ngx.say(object.content[1].value)
                 ngx.say(type(object.content[1].usermeta))
 		ngx.say(object.content[1].usermeta[1].value)
+            end
+            client:close()
+        ';
+    }
+--- request
+GET /t
+--- response_body
+true
+test
+table
+bar
+--- no_error_log
+[error]
+
+=== TEST 2: Usermetadata using high level client
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local riak = require "resty.riak"
+            local client = riak.new()
+            local ok, err = client:connect("127.0.0.1", 8087)
+            if not ok then
+                ngx.log(ngx.ERR, "connect failed: " .. err)
+            end
+            local bucket = client:bucket("test")
+            local object = bucket:new("1")
+            object.value = "test"
+            object.content_type = "text/plain"
+	    object.meta.foo = "bar"
+            local rc, err = object:store()
+            ngx.say(rc)
+            if not rc then
+                ngx.say(err)
+            end  
+            local object, err = bucket:get("1")
+            if not object then
+                ngx.say(err)
+            else
+                ngx.say(object.value)
+		ngx.say(type(object.meta))
+		ngx.say(object.meta.foo)
             end
             client:close()
         ';
