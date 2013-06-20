@@ -6,10 +6,11 @@ local setmetatable = setmetatable
 local error = error
 local ngx = ngx
 local type = type
-local pairs = pairs
-local insert = table.insert
 
-local _M = require("resty.riak.helpers").module()
+local helpers = require("resty.riak.helpers")
+local table_to_RpbPairs = helpers.table_to_RpbPairs
+
+local _M = helpers.module()
 
 local pb = require "pb"
 local struct = require "struct"
@@ -157,19 +158,6 @@ local function handle_request_response(sock, request_msgcode, encoder, request, 
     end
 end
 
-local function table_to_RpbPairs(t)
-    local rc
-    if t then
-	rc = {}
-	for k,v in pairs(t) do
-	    insert(rc, { key = k, value = v})
-	end
-	return rc
-    else
-	return nil
-    end
-end
-
 local PutReq = riak_kv.RpbPutReq
 local function true_handler(response)
     return true
@@ -185,7 +173,7 @@ end
 -- local object = { key = "1", value = "test", content_type = "text/plain" } 
 -- local rc, err = client:store_object("bucket-name", object)
 -- -- if using eleveldb, secondary indexes can be added to object before storing
--- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { "foo_bin" = "bar" } }
+-- local object = { key = "1", value = "test", content_type = "text/plain", indexes = { { key = "foo_bin", value = "bar" } } } 
 function _M.store_object(self, bucket, object)
     local sock = self.sock
 
@@ -197,7 +185,7 @@ function _M.store_object(self, bucket, object)
             content_type = object.content_type,
             charset = object.charset,
             content_encoding = object.content_encoding,
-            usermeta = object.meta,
+            usermeta = table_to_RpbPairs(object.meta),
 	    indexes = table_to_RpbPairs(object.indexes)
         }
     }
@@ -235,6 +223,7 @@ local function get_handler(response)
     end
     return GetResp:Parse(response)
 end
+
 --- Retrieve an object.
 -- @tparam resty.riak.client self
 -- @tparam string bucket
