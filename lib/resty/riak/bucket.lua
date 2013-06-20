@@ -93,4 +93,16 @@ local riak_client_get_index = riak_client.get_index
 function _M.index(self, index, value)
     return riak_client_get_index(self.client, self.name, index, value)
 end
+
+local get_bucket_props = riak_client.get_bucket_props
+--- Get bucket properties
+-- @tparam resty.riak.bucket self
+-- @tparam string bucket
+-- @treturn table properties as defined in [RpbBucketProps](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response)
+-- @treturn string error description
+function _M.properties(self)
+    return get_bucket_props(self.client, self.name)
+end
+
+
 return _M
