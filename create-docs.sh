@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 git checkout gh-pages
+git merge master
 ldoc .
 git add .
 git status
