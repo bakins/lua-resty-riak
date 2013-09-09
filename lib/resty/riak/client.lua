@@ -283,6 +283,24 @@ function _M.get_bucket_props(self, bucket)
     return handle_request_response(self.sock, 19, GetBucketReq, request, 20, bucket_props_handler)
 end
 
+local SetBucketReq = riak.RpbSetBucketReq
+--- Get bucket properties
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam table properties as defined in [set-bucket-props](http://docs.basho.com/riak/1.4.2/dev/references/protocol-buffers/set-bucket-props/#Request)
+-- @treturn boolean successful
+-- @treturn string error description
+function _M.set_bucket_props(self, bucket, properties)
+    local request = {
+        bucket = bucket,
+	props = properties
+    }
+    -- 21 = RpbSetBucketReq
+    -- 22 = RpbSetBucketResp
+    return handle_request_response(self.sock, 21, SetBucketReq, request, 22, true_handler)
+end
+
+
 local IndexReq = riak_kv.RpbIndexReq
 local IndexResp = riak_kv.RpbIndexResp()
 local function index_handler(response)
@@ -318,4 +336,53 @@ function _M.get_index(self, bucket, index, value)
     return handle_request_response(self.sock, 25, IndexReq, request, 26, index_handler)
 end
 
+
+local CounterUpdateReq = riak_kv.RpbCounterUpdateReq
+local CounterUpdateResp = riak_kv.RpbCounterUpdateResp()
+
+local function update_counter_handler(response)
+    return CounterUpdateResp:Parse(response), nil
+end
+
+--- Update a counter
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam string key
+-- @tparam number amount amount to incremenent counter
+-- @treturn value value of counter
+-- @treturn string error description
+function _M.update_counter(self, bucket, key, amount)
+    local request = {
+	bucket = bucket,
+	key = key,
+	amount = amount
+    }
+    -- 50 = RpbCounterUpdateReq
+    -- 51 = RpbCounterUpdateResp
+    return handle_request_response(self.sock, 50, CounterUpdateReq, request, 51, true_handler)
+end
+
+local CounterGetReq = riak_kv.RpbCounterGetReq
+local CounterGetResp = riak_kv.RpbCounterGetResp()
+
+local function get_counter_handler(response)
+    return CounterGetResp:Parse(response).value, nil
+end
+
+--- Get the value of a counter
+--- Update a counter
+-- @tparam resty.riak.client self
+-- @tparam string bucket
+-- @tparam string key
+-- @treturn value value of counter
+-- @treturn string error description
+function _M.get_counter(self, bucket, key)
+    local request = {
+	bucket = bucket,
+	key = key
+    }
+    -- 52 = RpbCounterGetReq
+    -- 53 = CounterGetResp
+    return handle_request_response(self.sock, 52, CounterGetReq, request, 53, get_counter_handler)
+end
 return _M

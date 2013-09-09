@@ -18,7 +18,7 @@ file "/etc/apt/sources.list.d/basho.list" do
 end
 
 package "riak" do
-  version "1.3.1~#{node['lsb']['codename']}1"
+  version "1.4.2-1"
 end
 
 file "/etc/default/riak" do
