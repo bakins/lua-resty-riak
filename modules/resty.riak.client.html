@@ -115,8 +115,21 @@
 	<td class="summary">Get bucket properties</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#set_bucket_props">set_bucket_props&nbsp;(self, bucket, properties)</a></td>
+	<td class="summary">Get bucket properties</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#get_index">get_index&nbsp;(self, bucket, index, value)</a></td>
 	<td class="summary">Query a secondary index</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#update_counter">update_counter&nbsp;(self, bucket, key, amount)</a></td>
+	<td class="summary">Update a counter</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_counter">get_counter&nbsp;(self, bucket, key)</a></td>
+	<td class="summary">Get the value of a counter
+ Update a counter</td>
 	</tr>
 </table>
 
@@ -482,6 +495,42 @@
 
 </dd>
     <dt>
+    <a name = "set_bucket_props"></a>
+    <strong>set_bucket_props&nbsp;(self, bucket, properties)</strong>
+    </dt>
+    <dd>
+    Get bucket properties
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">properties</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         as defined in <a href="http://docs.basho.com/riak/1.4.2/dev/references/protocol-buffers/set-bucket-props/#Request">set-bucket-props</a></li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">boolean</span></span>
+        successful</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "get_index"></a>
     <strong>get_index&nbsp;(self, bucket, index, value)</strong>
     </dt>
@@ -506,6 +555,84 @@
          If this is a string, this is an exact match query, if a table then it is a range query</li>
     </ul>
 
+
+
+
+
+</dd>
+    <dt>
+    <a name = "update_counter"></a>
+    <strong>update_counter&nbsp;(self, bucket, key, amount)</strong>
+    </dt>
+    <dd>
+    Update a counter
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">amount</span>
+            <span class="types"><span class="type">number</span></span>
+         amount to incremenent counter</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">value</span></span>
+        value of counter</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_counter"></a>
+    <strong>get_counter&nbsp;(self, bucket, key)</strong>
+    </dt>
+    <dd>
+    Get the value of a counter
+ Update a counter
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.client.html#">resty.riak.client</a></span>
+
+</li>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">value</span></span>
+        value of counter</li>
+        <li>
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description</li>
+    </ol>
 
 
 
