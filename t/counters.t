@@ -33,9 +33,9 @@ __DATA__
             if not ok then
                 ngx.log(ngx.ERR, "connect failed: " .. err)
             end
-	    local rc, err = client:set_bucket_props("test", { allow_mult = 1 })
+	    local rc, err = client:set_bucket_props("counters", { allow_mult = 1 })
             ngx.say(rc)
-	    rc, err = client:update_counter("test", "counter", 10)
+	    rc, err = client:update_counter("counters", "counter", 10)
             ngx.say(rc)
             ngx.say(err)
             client:close()
@@ -64,9 +64,9 @@ nil
             if not ok then
                 ngx.log(ngx.ERR, "connect failed: " .. err)
             end
-	    local rc, err = client:set_bucket_props("test", { allow_mult = 1 })
-	    rc, err = client:update_counter("test", "counter", 10)
-            rc, err = client:get_counter("test", "counter")
+	    local rc, err = client:set_bucket_props("counters", { allow_mult = 1 })
+	    rc, err = client:update_counter("counters", "counter", 10)
+            rc, err = client:get_counter("counters", "counter")
 	    ngx.say(type(rc))
             client:close()
         ';
