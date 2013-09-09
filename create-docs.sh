@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 git checkout gh-pages
-git merge master
+git merge master -m "merge with master"
 ldoc .
 git add .
 git status
