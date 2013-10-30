@@ -11,12 +11,13 @@ local ngx = ngx
 local helpers = require("resty.riak.helpers")
 local RpbPairs_to_table = helpers.RpbPairs_to_table
 local table_to_RpbPairs = helpers.table_to_RpbPairs
+local ipairs = ipairs
 
 local _M = helpers.module()
 
 local riak_client = require "resty.riak.client"
 
---- Create a new riak object. This does not change anything in riak, it only sets up a Lua object.  
+--- Create a new riak object. This does not change anything in riak, it only sets up a Lua object.
 -- This does **not** persist to the server(s) until @{store} is called. Generally, @{resty.riak.bucket.new_object}
 -- is prefered.
 -- @tparam riak.resty.bucket bucket
@@ -28,7 +29,8 @@ function _M.new(bucket, key)
 	client = bucket.client,
         key = key,
         meta = {},
-	indexes = {}
+	indexes = {},
+	siblings = {}
     }
     return setmetatable(o,  { __index = _M })
 end
@@ -40,21 +42,50 @@ end
 -- @treturn resty.riak.object
 -- @treturn string error description
 function _M.load(bucket, key, response)
-    local content = response.content[1]
+    local content = response.content
+    local siblings = {}
+
+    for i=1,#content do
+	local c = content[i]
+	local s = {
+	    value = c.value,
+	    charset = c.charset,
+	    content_encoding =  c.content_encoding,
+	    content_type = c.content_type,
+	    last_mod = c.last_mod,
+	    meta = RpbPairs_to_table(c.usermeta)
+	}
+	siblings[i] = s
+    end
+
     local object = {
         key = key,
         bucket = bucket,
 	client = bucket.client,
-        --vclock = response.vclock,
-        value = content.value,
-        charset = content.charset,
-        content_encoding =  content.content_encoding,
-        content_type = content.content_type,
-        last_mod = content.last_mod,
-	meta = RpbPairs_to_table(content.usermeta)
+	siblings = siblings
     }
 
     return setmetatable(object, { __index = _M })
+end
+
+function _M.content(self)
+    return self.siblings[1]
+end
+
+function _M.has_siblings(Self)
+    return self.siblings[1] ~= nil
+end
+
+for i,key in ipairs({"value", "charset", "content_encoding", "content_type", "last_mod", "meta"}) do
+    _M[key] = function(self, sibling)
+	sibling = sibling or 1
+	local content = self.siblings[sibling]
+	if content then
+	    return content[key]
+	else
+	    return nil
+	end
+    end
 end
 
 local riak_client_store_object = riak_client.store_object
@@ -62,15 +93,17 @@ local riak_client_store_object = riak_client.store_object
 -- @tparam resty.riak.object self
 -- @see resty.riak.client.store_object
 function _M.store(self)
+    local content = self.siblings and self.siblings[1] or self.content
+
     local object = {
         key = self.key,
         content = {
-            value = self.value or "",
-            content_type = self.content_type,
-            charset = self.charset,
-            content_encoding = self.content_encoding,
-            usermeta = table_to_RpbPairs(self.meta),
-	    indexes = table_to_RpbPairs(self.indexes)
+            value = content.value or "",
+            content_type = content.content_type,
+            charset = content.charset,
+            content_encoding = content.content_encoding,
+            usermeta = table_to_RpbPairs(content.meta),
+	    indexes = table_to_RpbPairs(content.indexes)
         }
     }
 
