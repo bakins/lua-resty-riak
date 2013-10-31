@@ -60,7 +60,8 @@ local mt = {
 }
 
 --- Create a new riak object. This does not change anything in riak, it only sets up a Lua object.
--- This does **not** persist to the server(s) until @{store} is called. Generally, @{resty.riak.bucket.new_object}
+-- This does **not** persist to the server(s) until @{store} is called.
+-- Generally, @{resty.riak.bucket.new_object}
 -- is prefered.
 -- @tparam riak.resty.bucket bucket
 -- @tparam string key
@@ -114,7 +115,6 @@ function _M.load(bucket, key, response)
 end
 
 --- Return the content, or the first sibling if more than one is present
--- is prefered.
 -- @tparam riak.resty.object self
 -- @treturn content
 function _M.content(self)
@@ -122,7 +122,6 @@ function _M.content(self)
 end
 
 --- Does the object have siblings
--- is prefered.
 -- @tparam riak.resty.object self
 -- @treturn boolean
 function _M.has_siblings(self)
