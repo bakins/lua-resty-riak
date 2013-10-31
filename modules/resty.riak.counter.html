@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>lua-resty-riak reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/resty.riak.html">resty.riak</a></li>
+  <li><a href="../modules/resty.riak.bucket.html">resty.riak.bucket</a></li>
+  <li><a href="../modules/resty.riak.client.html">resty.riak.client</a></li>
+  <li><strong>resty.riak.counter</strong></li>
+  <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
+  <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
+</ul>
+<h2>Topics</h2>
+<ul>
+  <li><a href="../topics/README.md.html">README.md</a></li>
+</ul>
+<h2>Examples</h2>
+<ul>
+  <li><a href="../examples/client.lua.html">client.lua</a></li>
+  <li><a href="../examples/delete.lua.html">delete.lua</a></li>
+  <li><a href="../examples/info.lua.html">info.lua</a></li>
+  <li><a href="../examples/simple.lua.html">simple.lua</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>resty.riak.counter</code></h1>
+
+<p>Riak counter object.</p>
+<p> Can only be used with resty.riak created client.
+ These are generally just wrappers around the low level
+ <a href="../modules/resty.riak.client.html#">resty.riak.client</a> functions</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#new">new&nbsp;(bucket, key)</a></td>
+	<td class="summary">Create a new riak counter.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#value">value&nbsp;(self)</a></td>
+	<td class="summary">Get the value of the counter</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#decrement">decrement&nbsp;(self, amount)</a></td>
+	<td class="summary">Decrement the counter</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#increment">increment&nbsp;(self, amount)</a></td>
+	<td class="summary">Increment the counter</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#decrement_and_return">decrement_and_return&nbsp;(self, amount)</a></td>
+	<td class="summary">Decrement the counter and return its new value</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#increment_and_return">increment_and_return&nbsp;(self, amount)</a></td>
+	<td class="summary">Increment the counter and return its new value</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Functions"></a>Functions</h2>
+    <dl class="function">
+    <dt>
+    <a name = "new"></a>
+    <strong>new&nbsp;(bucket, key)</strong>
+    </dt>
+    <dd>
+    Create a new riak counter.  This does not change anything in riak, it only sets up a Lua object.
+ Generally, <a href="../modules/resty.riak.bucket.html#counter">resty.riak.bucket.counter</a>
+ is prefered.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bucket</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "value"></a>
+    <strong>value&nbsp;(self)</strong>
+    </dt>
+    <dd>
+    Get the value of the counter
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">number</span></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "decrement"></a>
+    <strong>decrement&nbsp;(self, amount)</strong>
+    </dt>
+    <dd>
+    Decrement the counter
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+</li>
+        <li><span class="parameter">amount</span>
+            <span class="types"><span class="type">number</span></span>
+         the amount to decrement the counter by</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">boolean</span></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "increment"></a>
+    <strong>increment&nbsp;(self, amount)</strong>
+    </dt>
+    <dd>
+    Increment the counter
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+</li>
+        <li><span class="parameter">amount</span>
+            <span class="types"><span class="type">number</span></span>
+         the amount to increment the counter by</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">boolean</span></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "decrement_and_return"></a>
+    <strong>decrement_and_return&nbsp;(self, amount)</strong>
+    </dt>
+    <dd>
+    Decrement the counter and return its new value
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+</li>
+        <li><span class="parameter">amount</span>
+            <span class="types"><span class="type">number</span></span>
+         the amount to decrement the counter by</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">number</span></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "increment_and_return"></a>
+    <strong>increment_and_return&nbsp;(self, amount)</strong>
+    </dt>
+    <dd>
+    Increment the counter and return its new value
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+</li>
+        <li><span class="parameter">amount</span>
+            <span class="types"><span class="type">number</span></span>
+         the amount to decrement the counter by</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">number</span></span>
+
+
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

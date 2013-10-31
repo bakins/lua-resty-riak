@@ -41,6 +41,7 @@
   <li><a href="../modules/resty.riak.html">resty.riak</a></li>
   <li><a href="../modules/resty.riak.bucket.html">resty.riak.bucket</a></li>
   <li><strong>resty.riak.client</strong></li>
+  <li><a href="../modules/resty.riak.counter.html">resty.riak.counter</a></li>
   <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
   <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
 </ul>
@@ -123,7 +124,7 @@
 	<td class="summary">Query a secondary index</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#update_counter">update_counter&nbsp;(self, bucket, key, amount)</a></td>
+	<td class="name" nowrap><a href="#update_counter">update_counter&nbsp;(self, bucket, key, amount, options)</a></td>
 	<td class="summary">Update a counter</td>
 	</tr>
 	<tr>
@@ -562,7 +563,7 @@
 </dd>
     <dt>
     <a name = "update_counter"></a>
-    <strong>update_counter&nbsp;(self, bucket, key, amount)</strong>
+    <strong>update_counter&nbsp;(self, bucket, key, amount, options)</strong>
     </dt>
     <dd>
     Update a counter
@@ -584,6 +585,9 @@
         <li><span class="parameter">amount</span>
             <span class="types"><span class="type">number</span></span>
          amount to incremenent counter</li>
+        <li><span class="parameter">options</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         currently only <code>returnvalue</code> is supported</li>
     </ul>
 
     <h3>Returns:</h3>

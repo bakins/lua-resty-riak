@@ -41,6 +41,7 @@
   <li><a href="../modules/resty.riak.html">resty.riak</a></li>
   <li><strong>resty.riak.bucket</strong></li>
   <li><a href="../modules/resty.riak.client.html">resty.riak.client</a></li>
+  <li><a href="../modules/resty.riak.counter.html">resty.riak.counter</a></li>
   <li><a href="../modules/resty.riak.helpers.html">resty.riak.helpers</a></li>
   <li><a href="../modules/resty.riak.object.html">resty.riak.object</a></li>
 </ul>
@@ -73,6 +74,10 @@
 	<td class="summary">Create a new riak value object.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#counter">counter&nbsp;(self, key)</a></td>
+	<td class="summary">Create a new riak countert.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#new">new&nbsp;(client, name)</a></td>
 	<td class="summary">Create a new bucket object.</td>
 	</tr>
@@ -89,8 +94,12 @@
 	<td class="summary">Delete an object</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#properties">properties&nbsp;(self, bucket)</a></td>
+	<td class="name" nowrap><a href="#properties">properties&nbsp;(self)</a></td>
 	<td class="summary">Get bucket properties</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#set_properties">set_properties&nbsp;(self)</a></td>
+	<td class="summary">Set bucket properties</td>
 	</tr>
 </table>
 
@@ -131,6 +140,41 @@
     <h3>see also:</h3>
     <ul>
          <a href="../modules/resty.riak.object.html#new">resty.riak.object.new</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "counter"></a>
+    <strong>counter&nbsp;(self, key)</strong>
+    </dt>
+    <dd>
+    Create a new riak countert.
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><a class="type" href="../modules/resty.riak.counter.html#">resty.riak.counter</a></span>
+
+
+    </ol>
+
+
+    <h3>see also:</h3>
+    <ul>
+         <a href="../modules/resty.riak.counter.html#new">resty.riak.counter.new</a>
     </ul>
 
 
@@ -269,7 +313,7 @@
 </dd>
     <dt>
     <a name = "properties"></a>
-    <strong>properties&nbsp;(self, bucket)</strong>
+    <strong>properties&nbsp;(self)</strong>
     </dt>
     <dd>
     Get bucket properties
@@ -278,10 +322,6 @@
     <ul>
         <li><span class="parameter">self</span>
             <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
-
-</li>
-        <li><span class="parameter">bucket</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
 
 </li>
     </ul>
@@ -294,6 +334,32 @@
         <li>
           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
         error description</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "set_properties"></a>
+    <strong>set_properties&nbsp;(self)</strong>
+    </dt>
+    <dd>
+    Set bucket properties
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">self</span>
+            <span class="types"><a class="type" href="../modules/resty.riak.bucket.html#">resty.riak.bucket</a></span>
+
+</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error description
     </ol>
 
 
