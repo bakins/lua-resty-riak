@@ -11,6 +11,7 @@ local _M = require("resty.riak.helpers").module()
 
 local riak_object = require "resty.riak.object"
 local riak_client = require "resty.riak.client"
+local riak_counter = require "resty.riak.counter"
 
 local riak_object_new = riak_object.new
 
@@ -24,6 +25,17 @@ function _M.new_object(self, key)
 end
 
 local new_object = _M.new_object
+
+local riak_counter_new = riak_counter.new
+
+--- Create a new riak countert.
+-- @tparam resty.riak.bucket self
+-- @tparam string key
+-- @treturn resty.riak.counter
+-- @see resty.riak.counter.new
+function _M.counter(self, key)
+    return riak_counter_new(self, key)
+end
 
 --- Create a new bucket object. This does not actually do anything to riak. It only sets up the Lua objects
 -- @tparam resty.riak client a resy.riak created client
@@ -97,12 +109,19 @@ end
 local get_bucket_props = riak_client.get_bucket_props
 --- Get bucket properties
 -- @tparam resty.riak.bucket self
--- @tparam string bucket
 -- @treturn table properties as defined in [RpbBucketProps](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response)
 -- @treturn string error description
 function _M.properties(self)
     return get_bucket_props(self.client, self.name)
 end
 
+local set_bucket_props = riak_client.set_bucket_props
+--- Set bucket properties
+-- @tparam resty.riak.bucket self
+-- @tparame table properties as defined in [RpbBucketProps](http://docs.basho.com/riak/latest/references/apis/protocol-buffers/PBC-Get-Bucket-Properties/#Response)
+-- @treturn string error description
+function _M.set_properties(self, properties)
+    return set_bucket_props(self.client, self.name, properties)
+end
 
 return _M
