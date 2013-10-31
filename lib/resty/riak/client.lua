@@ -341,7 +341,7 @@ local CounterUpdateReq = riak_kv.RpbCounterUpdateReq
 local CounterUpdateResp = riak_kv.RpbCounterUpdateResp()
 
 local function update_counter_handler(response)
-    return CounterUpdateResp:Parse(response), nil
+    return CounterUpdateResp:Parse(response).value, nil
 end
 
 --- Update a counter
@@ -349,17 +349,22 @@ end
 -- @tparam string bucket
 -- @tparam string key
 -- @tparam number amount amount to incremenent counter
+-- @tparam table options currently only `returnvalue` is supported
 -- @treturn value value of counter
 -- @treturn string error description
-function _M.update_counter(self, bucket, key, amount)
+function _M.update_counter(self, bucket, key, amount, options)
+    options = options or { }
+    local returnvalue = options.returnvalue and true or false
     local request = {
 	bucket = bucket,
 	key = key,
-	amount = amount
+	amount = amount,
+	returnvalue = returnvalue
     }
     -- 50 = RpbCounterUpdateReq
     -- 51 = RpbCounterUpdateResp
-    return handle_request_response(self.sock, 50, CounterUpdateReq, request, 51, true_handler)
+    local handler = returnvalue and update_counter_handler or true_handler
+    return handle_request_response(self.sock, 50, CounterUpdateReq, request, 51, handler)
 end
 
 local CounterGetReq = riak_kv.RpbCounterGetReq
