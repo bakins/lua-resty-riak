@@ -21,13 +21,10 @@ local riak_client = require "resty.riak.client"
 
 --- fields on the content can be set by shorthand helpers. These only work on the first
 -- sibling if more than one is present
--- @field value
--- @field charset
--- @field content_encoding
--- @field content_type
--- @table new_index_fields
-local new_index_fields = {}
-for i,key in ipairs({"value", "charset", "content_encoding", "content_type" }) do
+-- @usage
+-- object.value = "some value"
+local new_index_fields = {"value", "charset", "content_encoding", "content_type" }
+for i,key in ipairs(new_index_fields) do
     new_index_fields[key] = true
 end
 
@@ -39,8 +36,12 @@ local function newindex(self, k, v)
     end
 end
 
-local index_fields = {}
-for i,key in ipairs({"value", "charset", "content_encoding", "content_type", "last_mod", "meta"}) do
+--- fields on the content can be read by shorthand helpers. These only work on the first
+-- sibling if more than one is present
+-- @usage
+-- ngx.say(object.value)
+local index_fields = {"value", "charset", "content_encoding", "content_type", "last_mod", "meta"}
+for i,key in ipairs(index_fields) do
     index_fields[key] = true
 end
 
@@ -112,11 +113,19 @@ function _M.load(bucket, key, response)
     return setmetatable(object, mt)
 end
 
+--- Return the content, or the first sibling if more than one is present
+-- is prefered.
+-- @tparam riak.resty.object self
+-- @treturn content
 function _M.content(self)
     return self.siblings[1]
 end
 
-function _M.has_siblings(Self)
+--- Does the object have siblings
+-- is prefered.
+-- @tparam riak.resty.object self
+-- @treturn boolean
+function _M.has_siblings(self)
     return self.siblings[1] ~= nil
 end
 
