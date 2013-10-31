@@ -40,7 +40,7 @@ end
 -- sibling if more than one is present
 -- @usage
 -- ngx.say(object.value)
-local index_fields = {"value", "charset", "content_encoding", "content_type", "last_mod", "meta"}
+local index_fields = {"value", "charset", "content_encoding", "content_type", "last_mod", "meta", "indexes" }
 for i,key in ipairs(index_fields) do
     index_fields[key] = true
 end
