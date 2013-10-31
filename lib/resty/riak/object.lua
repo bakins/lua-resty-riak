@@ -30,9 +30,9 @@ end
 
 local function newindex(self, k, v)
     if new_index_fields[k] then
-	rawset(self.siblings[1], k, v)
+        rawset(self.siblings[1], k, v)
     else
-	error("invalid field: " .. k)
+        error("invalid field: " .. k)
     end
 end
 
@@ -47,10 +47,10 @@ end
 
 local function index(self, k)
     if index_fields[k] then
-	local content = self.siblings[1]
-	return content[k]
+        local content = self.siblings[1]
+        return content[k]
     else
-	return _M[k]
+        return _M[k]
     end
 end
 
@@ -69,14 +69,14 @@ local mt = {
 function _M.new(bucket, key)
     local o = {
         bucket = bucket,
-	client = bucket.client,
+        client = bucket.client,
         key = key,
-	siblings = {
-	    {
-		meta = {},
-		indexes = {}
-	    }
-	}
+        siblings = {
+            {
+                meta = {},
+                indexes = {}
+            }
+        }
     }
     return setmetatable(o, mt)
 end
@@ -92,23 +92,23 @@ function _M.load(bucket, key, response)
     local siblings = {}
 
     for i=1,#content do
-	local c = content[i]
-	local s = {
-	    value = c.value,
-	    charset = c.charset,
-	    content_encoding =  c.content_encoding,
-	    content_type = c.content_type,
-	    last_mod = c.last_mod,
-	    meta = RpbPairs_to_table(c.usermeta)
-	}
-	siblings[i] = s
+        local c = content[i]
+        local s = {
+            value = c.value,
+            charset = c.charset,
+            content_encoding =  c.content_encoding,
+            content_type = c.content_type,
+            last_mod = c.last_mod,
+            meta = RpbPairs_to_table(c.usermeta)
+        }
+        siblings[i] = s
     end
 
     local object = {
         key = key,
         bucket = bucket,
-	client = bucket.client,
-	siblings = siblings
+        client = bucket.client,
+        siblings = siblings
     }
 
     return setmetatable(object, mt)
@@ -143,7 +143,7 @@ function _M.store(self)
             charset = content.charset,
             content_encoding = content.content_encoding,
             usermeta = table_to_RpbPairs(content.meta),
-	    indexes = table_to_RpbPairs(content.indexes)
+            indexes = table_to_RpbPairs(content.indexes)
         }
     }
 
