@@ -77,3 +77,33 @@ GET /t
 number
 --- no_error_log
 [error]
+
+
+
+
+=== TEST 3: update and get a counter using high level interface
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local riak = require "resty.riak"
+            local client = riak.new()
+            local ok, err = client:connect("127.0.0.1", 8087)
+            if not ok then
+                ngx.log(ngx.ERR, "connect failed: " .. err)
+            end
+            local bucket = client:bucket("counters")
+            bucket:set_properties({ allow_mult = 1 })
+            local counter = bucket:counter("counter")
+            counter:decrement()
+            local value = counter:value()
+            ngx.say(type(value))
+            client:close()
+        ';
+    }
+--- request
+GET /t
+--- response_body
+number
+--- no_error_log
+[error]
