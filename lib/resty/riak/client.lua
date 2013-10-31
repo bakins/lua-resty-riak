@@ -354,7 +354,7 @@ end
 -- @treturn string error description
 function _M.update_counter(self, bucket, key, amount, options)
     options = options or { }
-    local returnvalue = options.returnvalue and true or false
+    local returnvalue = options.returnvalue and 1 or 0
     local request = {
 	bucket = bucket,
 	key = key,
@@ -363,7 +363,7 @@ function _M.update_counter(self, bucket, key, amount, options)
     }
     -- 50 = RpbCounterUpdateReq
     -- 51 = RpbCounterUpdateResp
-    local handler = returnvalue and update_counter_handler or true_handler
+    local handler = (returnvalue == 1) and update_counter_handler or true_handler
     return handle_request_response(self.sock, 50, CounterUpdateReq, request, 51, handler)
 end
 
