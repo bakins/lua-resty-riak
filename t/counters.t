@@ -98,12 +98,15 @@ number
             counter:decrement()
             local value = counter:value()
             ngx.say(type(value))
+            local value = counter:decrement_and_return()
+            ngx.say(type(value))
             client:close()
         ';
     }
 --- request
 GET /t
 --- response_body
+number
 number
 --- no_error_log
 [error]
