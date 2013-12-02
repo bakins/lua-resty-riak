@@ -22,6 +22,7 @@ build = {
 	['resty.riak.bucket'] = "lib/resty/riak/bucket.lua",
 	['resty.riak.object'] = "lib/resty/riak/object.lua",
 	['resty.riak.client'] = "lib/resty/riak/client.lua",
-	['resty.riak.helpers'] = "lib/resty/riak/helpers.lua"
+	['resty.riak.helpers'] = "lib/resty/riak/helpers.lua",
+	['resty.riak.counter'] = "lib/resty/riak/counter.lua"
     }
 }
