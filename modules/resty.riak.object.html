@@ -62,6 +62,7 @@
   <li><a href="../examples/server-info.lua.html">server-info.lua</a></li>
   <li><a href="../examples/simple.lua.html">simple.lua</a></li>
   <li><a href="../examples/user-metadata.lua.html">user-metadata.lua</a></li>
+  <li><a href="../examples/vclock.lua.html">vclock.lua</a></li>
 </ul>
 
 </div>
@@ -90,7 +91,7 @@
 	<td class="summary">Persist an object to riak.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#delete">delete&nbsp;(self)</a></td>
+	<td class="name" nowrap><a href="#delete">delete&nbsp;(options)</a></td>
 	<td class="summary">Delete an object</td>
 	</tr>
 </table>
@@ -197,16 +198,16 @@
 </dd>
     <dt>
     <a name = "delete"></a>
-    <strong>delete&nbsp;(self)</strong>
+    <strong>delete&nbsp;(options)</strong>
     </dt>
     <dd>
     Delete an object
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">self</span>
-
-</li>
+        <li><span class="parameter">options</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         optional parameters as defined in <a href="http://docs.basho.com/riak/latest/dev/references/protocol-buffers/delete-object/">PBC Delete Object</a>. vclock will be set to the objects vclock if present</li>
     </ul>
 
     <h3>Returns:</h3>

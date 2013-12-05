@@ -37,7 +37,7 @@
   <li><a href="../examples/bucketprops.lua.html">bucketprops.lua</a></li>
   <li><a href="../examples/client-id.lua.html">client-id.lua</a></li>
   <li><a href="../examples/client.lua.html">client.lua</a></li>
-  <li><strong>counters.lua</strong></li>
+  <li><a href="../examples/counters.lua.html">counters.lua</a></li>
   <li><a href="../examples/delete.lua.html">delete.lua</a></li>
   <li><a href="../examples/indexes.lua.html">indexes.lua</a></li>
   <li><a href="../examples/info.lua.html">info.lua</a></li>
@@ -45,7 +45,7 @@
   <li><a href="../examples/server-info.lua.html">server-info.lua</a></li>
   <li><a href="../examples/simple.lua.html">simple.lua</a></li>
   <li><a href="../examples/user-metadata.lua.html">user-metadata.lua</a></li>
-  <li><a href="../examples/vclock.lua.html">vclock.lua</a></li>
+  <li><strong>vclock.lua</strong></li>
 </ul>
 <h2>Modules</h2>
 <ul>
@@ -65,30 +65,25 @@
 
 <div id="content">
 
-<h1>Example <code>counters.lua</code></h1>
+<h1>Example <code>vclock.lua</code></h1>
 
     <pre>
- <span class="keyword">local</span> riak = <span class="global">require</span> <span class="string">"resty.riak"</span>
- <span class="keyword">local</span> client = riak.new()
- <span class="keyword">local</span> ok, err = client:connect(<span class="string">"127.0.0.1"</span>, <span class="number">8087</span>)
- <span class="keyword">if</span> <span class="keyword">not</span> ok <span class="keyword">then</span>
-     ngx.log(ngx.ERR, <span class="string">"connect failed: "</span> .. err)
- <span class="keyword">end</span>
- <span class="keyword">local</span> bucket = client:bucket(<span class="string">"counters"</span>)
-
-<span class="comment">-- you can only use counters with allow_mult set on a bucket
-</span> bucket:set_properties({ allow_mult = <span class="number">1</span> })
-
- <span class="keyword">local</span> counter = bucket:counter(<span class="string">"counter"</span>)
- counter:decrement()
-
- <span class="keyword">local</span> value = counter:value()
- ngx.say(<span class="global">type</span>(value))
-
- <span class="keyword">local</span> value = counter:decrement_and_return()
- ngx.say(<span class="global">type</span>(value))
-
- client:close()</pre>
+<span class="keyword">local</span> riak = <span class="global">require</span> <span class="string">"resty.riak"</span>
+<span class="keyword">local</span> client = riak.new()
+<span class="keyword">local</span> ok, err = client:connect(<span class="string">"127.0.0.1"</span>, <span class="number">8087</span>)
+<span class="keyword">if</span> <span class="keyword">not</span> ok <span class="keyword">then</span>
+    ngx.log(ngx.ERR, <span class="string">"connect failed: "</span> .. err)
+<span class="keyword">end</span>
+<span class="keyword">local</span> bucket = client:bucket(<span class="string">"test"</span>)
+<span class="keyword">local</span> object = bucket:new(<span class="string">"1"</span>)
+object.value = <span class="string">"test"</span>
+object.content_type = <span class="string">"text/plain"</span>
+<span class="keyword">local</span> rc, err = object:store()
+ngx.say(rc)
+<span class="keyword">local</span> object, err = bucket:get(<span class="string">"1"</span>)
+ngx.say(object.value)
+ngx.say(<span class="global">type</span>(object.vclock))
+client:close()</pre>
 
 
 </div> <!-- id="content" -->
