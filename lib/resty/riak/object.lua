@@ -125,7 +125,7 @@ end
 -- @tparam riak.resty.object self
 -- @treturn boolean
 function _M.has_siblings(self)
-    return self.siblings[1] ~= nil
+    return self.siblings[2] ~= nil
 end
 
 local riak_client_store_object = riak_client.store_object
