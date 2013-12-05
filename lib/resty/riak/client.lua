@@ -185,16 +185,24 @@ local DelReq = riak_kv.RpbDelReq
 -- @tparam resty.riak.client self
 -- @tparam string bucket
 -- @tparam string key
+-- @tparam table options optional parameters as defined in [PBC Delete Object](http://docs.basho.com/riak/latest/dev/references/protocol-buffers/delete-object/)
 -- @treturn boolean not true on error. If an object does not exist and there is no other error (network, time out, etc) then this will still return true.
 -- @treturn string error description
-function _M.delete_object(self, bucket, key)
+function _M.delete_object(self, bucket, key, options)
     local sock = self.sock
-    
-    local request = { 
-        bucket = bucket, 
-        key = key 
+    options = options or {}
+    local request = {
+        bucket = bucket,
+        key = key,
+	rw = options.rw,
+	vclock = options.vclock,
+	r = options.r,
+	w = options.w,
+	pr = options.pr,
+	pw = options.pw,
+	dw = options.dw
     }
-    
+
     -- 13 = DelReq
     -- 14 = DelResp
     return handle_request_response(sock, 13, DelReq, request, 14, true_handler)
