@@ -66,6 +66,10 @@ usage and examples.
   not break between minor versions. The _low-level_ or _raw_ API
   should not be considered stable. 
 
+## Potentially Breaking Change in 2.0 ##
+
+2.0.0 now uses [vector clocks](http://docs.basho.com/riak/latest/theory/concepts/Vector-Clocks/) for gets,sets, and deletes of objects.  If you are using a bucket that allows multiple values (siblings) then this may break your application.
+
 ## Limitations ##
 
 * This library cannot be used in code contexts like *set_by_lua*, *log_by_lua*, and
