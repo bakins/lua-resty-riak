@@ -45,7 +45,7 @@ function _M.load(bucket, key, response)
         key = key,
         bucket = bucket,
 	client = bucket.client,
-        --vclock = response.vclock,
+        vclock = response.vclock,
         value = content.value,
         charset = content.charset,
         content_encoding =  content.content_encoding,
@@ -70,7 +70,8 @@ function _M.store(self)
             charset = self.charset,
             content_encoding = self.content_encoding,
             usermeta = table_to_RpbPairs(self.meta),
-	    indexes = table_to_RpbPairs(self.indexes)
+	    indexes = table_to_RpbPairs(self.indexes),
+	    vclock = self.vclock
         }
     }
 
@@ -79,14 +80,17 @@ end
 
 local riak_client_delete_object = riak_client.delete_object
 --- Delete an object
+-- @tparam table options optional parameters as defined in [PBC Delete Object](http://docs.basho.com/riak/latest/dev/references/protocol-buffers/delete-object/). vclock will be set to the objects vclock if present
 -- @treturn resty.riak.object self
 -- @see resty.riak.client.delete_object
-function _M.delete(self)
+function _M.delete(self, options)
     local key = self.key
     if not key then
         return nil, "no key"
     end
-    return riak_client_delete_object(self.client, self.bucket.name, key)
+    options = options or {}
+    options.vclock = self.vclock
+    return riak_client_delete_object(self.client, self.bucket.name, key, options)
 end
 
 return _M
