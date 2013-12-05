@@ -40,11 +40,11 @@
   <li><a href="../examples/counters.lua.html">counters.lua</a></li>
   <li><a href="../examples/delete.lua.html">delete.lua</a></li>
   <li><a href="../examples/indexes.lua.html">indexes.lua</a></li>
-  <li><strong>info.lua</strong></li>
+  <li><a href="../examples/info.lua.html">info.lua</a></li>
   <li><a href="../examples/ping.lua.html">ping.lua</a></li>
   <li><a href="../examples/server-info.lua.html">server-info.lua</a></li>
   <li><a href="../examples/simple.lua.html">simple.lua</a></li>
-  <li><a href="../examples/user-metadata.lua.html">user-metadata.lua</a></li>
+  <li><strong>user-metadata.lua</strong></li>
 </ul>
 <h2>Modules</h2>
 <ul>
@@ -64,7 +64,7 @@
 
 <div id="content">
 
-<h1>Example <code>info.lua</code></h1>
+<h1>Example <code>user-metadata.lua</code></h1>
 
     <pre>
 <span class="keyword">local</span> riak = <span class="global">require</span> <span class="string">"resty.riak"</span>
@@ -73,21 +73,26 @@
 <span class="keyword">if</span> <span class="keyword">not</span> ok <span class="keyword">then</span>
     ngx.log(ngx.ERR, <span class="string">"connect failed: "</span> .. err)
 <span class="keyword">end</span>
-
-<span class="keyword">local</span> info, err = client:get_server_info()
-ngx.say(<span class="global">type</span>(info))
-ngx.say(<span class="global">type</span>(info.node))
-ngx.say(<span class="global">type</span>(info.server_version))
-ngx.say(err)
-
-<span class="keyword">local</span> id, err = client:get_client_id()
-ngx.say(<span class="global">type</span>(id))
-ngx.say(err)
-
-<span class="keyword">local</span> rc, err = client:ping()
+<span class="keyword">local</span> bucket = client:bucket(<span class="string">"test"</span>)
+<span class="keyword">local</span> object = bucket:new(<span class="string">"1"</span>)
+object.value = <span class="string">"test"</span>
+object.content_type = <span class="string">"text/plain"</span>
+object.meta.foo = <span class="string">"bar"</span>
+<span class="keyword">local</span> rc, err = object:store()
 ngx.say(rc)
-ngx.say(err)
-
+<span class="keyword">if</span> <span class="keyword">not</span> rc <span class="keyword">then</span>
+    ngx.say(err)
+<span class="keyword">end</span>
+<span class="keyword">local</span> object, err = bucket:get(<span class="string">"1"</span>)
+<span class="keyword">if</span> <span class="keyword">not</span> object <span class="keyword">then</span>
+    ngx.say(err)
+<span class="keyword">else</span>
+    ngx.say(object.value)
+    ngx.say(<span class="global">type</span>(object.meta))
+    ngx.say(object.meta.foo)
+<span class="keyword">end</span>
+<span class="keyword">local</span> rc, err = object:delete()
+ngx.say(rc)
 client:close()</pre>
 
 

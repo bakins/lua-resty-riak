@@ -35,12 +35,12 @@
 <h2>Examples</h2>
 <ul>
   <li><a href="../examples/bucketprops.lua.html">bucketprops.lua</a></li>
-  <li><a href="../examples/client-id.lua.html">client-id.lua</a></li>
+  <li><strong>client-id.lua</strong></li>
   <li><a href="../examples/client.lua.html">client.lua</a></li>
   <li><a href="../examples/counters.lua.html">counters.lua</a></li>
   <li><a href="../examples/delete.lua.html">delete.lua</a></li>
   <li><a href="../examples/indexes.lua.html">indexes.lua</a></li>
-  <li><strong>info.lua</strong></li>
+  <li><a href="../examples/info.lua.html">info.lua</a></li>
   <li><a href="../examples/ping.lua.html">ping.lua</a></li>
   <li><a href="../examples/server-info.lua.html">server-info.lua</a></li>
   <li><a href="../examples/simple.lua.html">simple.lua</a></li>
@@ -64,31 +64,19 @@
 
 <div id="content">
 
-<h1>Example <code>info.lua</code></h1>
+<h1>Example <code>client-id.lua</code></h1>
 
     <pre>
-<span class="keyword">local</span> riak = <span class="global">require</span> <span class="string">"resty.riak"</span>
-<span class="keyword">local</span> client = riak.new()
-<span class="keyword">local</span> ok, err = client:connect(<span class="string">"127.0.0.1"</span>, <span class="number">8087</span>)
-<span class="keyword">if</span> <span class="keyword">not</span> ok <span class="keyword">then</span>
-    ngx.log(ngx.ERR, <span class="string">"connect failed: "</span> .. err)
-<span class="keyword">end</span>
-
-<span class="keyword">local</span> info, err = client:get_server_info()
-ngx.say(<span class="global">type</span>(info))
-ngx.say(<span class="global">type</span>(info.node))
-ngx.say(<span class="global">type</span>(info.server_version))
-ngx.say(err)
-
-<span class="keyword">local</span> id, err = client:get_client_id()
-ngx.say(<span class="global">type</span>(id))
-ngx.say(err)
-
-<span class="keyword">local</span> rc, err = client:ping()
-ngx.say(rc)
-ngx.say(err)
-
-client:close()</pre>
+ <span class="keyword">local</span> riak = <span class="global">require</span> <span class="string">"resty.riak"</span>
+ <span class="keyword">local</span> client = riak.new()
+ <span class="keyword">local</span> ok, err = client:connect(<span class="string">"127.0.0.1"</span>, <span class="number">8087</span>)
+ <span class="keyword">if</span> <span class="keyword">not</span> ok <span class="keyword">then</span>
+     ngx.log(ngx.ERR, <span class="string">"connect failed: "</span> .. err)
+ <span class="keyword">end</span>
+ <span class="keyword">local</span> id, err = client:get_client_id()
+ ngx.say(<span class="global">type</span>(id))
+ ngx.say(err)
+ client:close()</pre>
 
 
 </div> <!-- id="content" -->
