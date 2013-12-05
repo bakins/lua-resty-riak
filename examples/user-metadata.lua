@@ -8,8 +8,20 @@ local bucket = client:bucket("test")
 local object = bucket:new("1")
 object.value = "test"
 object.content_type = "text/plain"
+object.meta.foo = "bar"
 local rc, err = object:store()
 ngx.say(rc)
-local rc, err = bucket:delete("1")
+if not rc then
+    ngx.say(err)
+end
+local object, err = bucket:get("1")
+if not object then
+    ngx.say(err)
+else
+    ngx.say(object.value)
+    ngx.say(type(object.meta))
+    ngx.say(object.meta.foo)
+end
+local rc, err = object:delete()
 ngx.say(rc)
 client:close()

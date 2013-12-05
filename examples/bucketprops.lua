@@ -5,11 +5,10 @@ if not ok then
     ngx.log(ngx.ERR, "connect failed: " .. err)
 end
 local bucket = client:bucket("test")
-local object = bucket:new("1")
-object.value = "test"
-object.content_type = "text/plain"
-local rc, err = object:store()
-ngx.say(rc)
-local rc, err = bucket:delete("1")
-ngx.say(rc)
+local props, err = bucket:properties("test")
+ngx.say(type(props))
+ngx.say(type(props.n_val))
+ngx.say(type(props.allow_mult))
+local rc, err = bucket:set_properties({ n_val = 2 })
+ngx.say(tostring(rc))
 client:close()

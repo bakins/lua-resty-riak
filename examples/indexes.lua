@@ -8,8 +8,22 @@ local bucket = client:bucket("test")
 local object = bucket:new("1")
 object.value = "test"
 object.content_type = "text/plain"
+object.indexes.foo_bin = "bar"
 local rc, err = object:store()
 ngx.say(rc)
-local rc, err = bucket:delete("1")
-ngx.say(rc)
+if not rc then
+    ngx.say(err)
+end
+local keys, err = bucket:index("foo_bin", "bar")
+if not keys then
+    ngx.say(err)
+end
+ngx.say(type(keys[1]))
+
+-- index miss
+local keys, err = bucket:index("foo_bin", "this should not be found")
+if not keys then
+    ngx.say(err)
+end
+ngx.say(type(keys[1]))
 client:close()
