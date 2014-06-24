@@ -31,6 +31,8 @@ end
 local function newindex(self, k, v)
     if new_index_fields[k] then
         rawset(self.siblings[1], k, v)
+    elseif k == "vclock" then
+        rawset(self, "vclock", v)
     else
         error("invalid field: " .. k)
     end
@@ -106,6 +108,7 @@ function _M.load(bucket, key, response)
 
     local object = {
         key = key,
+        vclock = response.vclock,
         bucket = bucket,
         client = bucket.client,
         siblings = siblings
@@ -137,6 +140,7 @@ function _M.store(self)
 
     local object = {
         key = self.key,
+        vclock = self.vclock,
         content = {
             value = content.value or "",
             content_type = content.content_type,
