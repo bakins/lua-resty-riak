@@ -10,7 +10,7 @@ local bucket = client:bucket("siblings")
 bucket:set_properties({ allow_mult = 1 })
 
 local object = bucket:new("1")
-object.value = tostring(ngx.now())
+object.value = "first"
 object.content_type = "text/plain"
 local rc, err = object:store()
 
@@ -20,7 +20,7 @@ end
 
 --- by not using the vector clock this always causes a sibling
 local object = bucket:new("1")
-object.value = tostring(ngx.now())
+object.value = "second"
 object.content_type = "text/plain"
 local rc, err = object:store()
 
@@ -32,15 +32,17 @@ local object, err = bucket:get("1")
 if not object then
     ngx.say(err)
 else
-    ngx.say(type(object.value))
+    ngx.say(object.value)
 end
 
 ngx.say(object:has_siblings())
 
+ngx.say(#object.siblings)
+
 -- now set a value using vector clock
 local vclock = object.vclock
 local object = bucket:new("1")
-object.value = tostring(ngx.now())
+object.value = "third"
 object.content_type = "text/plain"
 object.vclock = vclock
 local rc, err = object:store()
@@ -53,11 +55,13 @@ local object, err = bucket:get("1")
 if not object then
     ngx.say(err)
 else
-    ngx.say(type(object.value))
+    ngx.say(object.value)
 end
 
 ngx.say(object:has_siblings())
 
+-- clean up after ourselves
+object:delete()
 
 client:close()
 
