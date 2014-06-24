@@ -92,18 +92,21 @@ end
 function _M.load(bucket, key, response)
     local content = response.content
     local siblings = {}
-
+    local j = 1
     for i=1,#content do
         local c = content[i]
-        local s = {
-            value = c.value,
-            charset = c.charset,
-            content_encoding =  c.content_encoding,
-            content_type = c.content_type,
-            last_mod = c.last_mod,
-            meta = RpbPairs_to_table(c.usermeta)
-        }
-        siblings[i] = s
+        if not c.deleted then
+            local s = {
+                value = c.value,
+                charset = c.charset,
+                content_encoding =  c.content_encoding,
+                content_type = c.content_type,
+                last_mod = c.last_mod,
+                meta = RpbPairs_to_table(c.usermeta)
+            }
+            siblings[j] = s
+            j = j + 1
+        end
     end
 
     local object = {
