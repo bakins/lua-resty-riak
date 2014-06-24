@@ -18,7 +18,7 @@ file "/etc/apt/sources.list.d/basho.list" do
 end
 
 package "riak" do
-  version "1.4.2-1"
+  version "1.4.9-1"
 end
 
 file "/etc/default/riak" do
@@ -48,9 +48,9 @@ execute "cpanm install Test::Nginx" do
   not_if "perl -mTest::Nginx -e'1'"
 end
 
-openresty_version = "1.4.3.6"
+openresty_version = "1.7.0.1"
 
-check_nginx_version = "/usr/local/sbin/nginx -v 2>&1 | grep 'ngx_openresty/#{openresty_version}'"
+check_nginx_version = "/usr/local/sbin/nginx -v 2>&1 | grep 'openresty/#{openresty_version}'"
 
 remote_file "/home/vagrant/ngx_openresty-#{openresty_version}.tar.gz" do
   source "http://openresty.org/download/ngx_openresty-#{openresty_version}.tar.gz"
