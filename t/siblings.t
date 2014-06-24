@@ -31,9 +31,10 @@ __DATA__
 --- request
 GET /t
 --- response_body
-string
+first
 true
-string
+2
+third
 false
 --- no_error_log
 [error]
