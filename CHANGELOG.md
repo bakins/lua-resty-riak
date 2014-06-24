@@ -1,6 +1,11 @@
 lua-resty-riak CHANGELOG
 ========================
 
+v2.1.0
+------
+### Feature
+- simpling support
+
 v2.0.0
 ------
 ### Feature
