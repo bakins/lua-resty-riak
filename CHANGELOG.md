@@ -4,7 +4,7 @@ lua-resty-riak CHANGELOG
 v2.1.0
 ------
 ### Feature
-- simpling support
+- Siblings support
 
 v2.0.0
 ------
