@@ -17,12 +17,19 @@ file "/etc/apt/sources.list.d/basho.list" do
   notifies :run, "execute[install basho key]", :immediately
 end
 
-package "riak" do
-  version "1.4.9-1"
+riak_version = "2.0.0"
+remote_file "/usr/src/riak_#{riak_version}-1_amd64.deb" do
+  source "http://s3.amazonaws.com/downloads.basho.com/riak/2.0/#{riak_version}/ubuntu/precise/riak_#{riak_version}-1_amd64.deb"
+  checksum "285d54c66337092e835c587d42bbd6c2e7cfae93071a52902fef0be8053a007a"
+end
+
+dpkg_package "riak" do
+  version "#{riak_version}-1"
+  source "/usr/src/riak_#{riak_version}-1_amd64.deb"
 end
 
 file "/etc/default/riak" do
-  content "ulimit -n 16384\n"
+  content "ulimit -n 65536\n"
   notifies :restart, "service[riak]"
 end
 
