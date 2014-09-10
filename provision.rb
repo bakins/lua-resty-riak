@@ -48,7 +48,7 @@ execute "cpanm install Test::Nginx" do
   not_if "perl -mTest::Nginx -e'1'"
 end
 
-openresty_version = "1.7.0.1"
+openresty_version = "1.7.2.1"
 
 check_nginx_version = "/usr/local/sbin/nginx -v 2>&1 | grep 'openresty/#{openresty_version}'"
 
